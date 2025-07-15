@@ -29,8 +29,8 @@ CREATE TABLE public.challenge_entries (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     challenge_id uuid,
     user_id uuid,
-    date date,
-    completed boolean,
+    date date DEFAULT (now())::date,
+    completed boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE public.challenges (
     title character varying NOT NULL,
     user_id uuid,
     description character varying,
-    start_date date NOT NULL,
+    start_date date DEFAULT (now())::date NOT NULL,
     end_date date,
     duration integer,
     active boolean,
@@ -75,8 +75,8 @@ ALTER TABLE public.schema_migrations OWNER TO root;
 CREATE TABLE public.task_days (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid,
-    date date,
-    count integer,
+    date date DEFAULT (now())::date,
+    count integer DEFAULT 0,
     total_duration time without time zone
 );
 
