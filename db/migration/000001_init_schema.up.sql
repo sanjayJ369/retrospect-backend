@@ -1,5 +1,5 @@
 CREATE TABLE "users" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "email" varchar NOT NULL,
   "name" varchar NOT NULL,
   "created_at" timestamp NOT NULL DEFAULT (now()),
@@ -7,7 +7,7 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "challenges" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "title" varchar NOT NULL,
   "user_id" uuid,
   "description" varchar,
@@ -19,7 +19,7 @@ CREATE TABLE "challenges" (
 );
 
 CREATE TABLE "challenge_entries" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "challenge_id" uuid,
   "user_id" uuid,
   "date" date,
@@ -28,7 +28,7 @@ CREATE TABLE "challenge_entries" (
 );
 
 CREATE TABLE "task_days" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "user_id" uuid,
   "date" date,
   "count" integer,
@@ -36,7 +36,7 @@ CREATE TABLE "task_days" (
 );
 
 CREATE TABLE "tasks" (
-  "id" uuid PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "task_day_id" uuid,
   "user_id" uuid,
   "title" varchar NOT NULL,
