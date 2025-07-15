@@ -27,8 +27,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.challenge_entries (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    challenge_id uuid,
-    user_id uuid,
+    challenge_id uuid NOT NULL,
     date date DEFAULT (now())::date,
     completed boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now()
@@ -44,17 +43,38 @@ ALTER TABLE public.challenge_entries OWNER TO root;
 CREATE TABLE public.challenges (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     title character varying NOT NULL,
-    user_id uuid,
+    user_id uuid NOT NULL,
     description character varying,
     start_date date DEFAULT (now())::date NOT NULL,
     end_date date,
-    duration integer,
-    active boolean,
+    active boolean DEFAULT true,
     created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
 ALTER TABLE public.challenges OWNER TO root;
+
+--
+-- Name: current_challenges_view; Type: VIEW; Schema: public; Owner: root
+--
+
+CREATE VIEW public.current_challenges_view AS
+ SELECT id,
+    title,
+    user_id,
+    description,
+    start_date,
+    end_date,
+    active,
+    created_at,
+        CASE
+            WHEN (end_date IS NOT NULL) THEN ((end_date - start_date) + 1)
+            ELSE ((CURRENT_DATE - start_date) + 1)
+        END AS duration
+   FROM public.challenges c;
+
+
+ALTER VIEW public.current_challenges_view OWNER TO root;
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: root
@@ -74,10 +94,10 @@ ALTER TABLE public.schema_migrations OWNER TO root;
 
 CREATE TABLE public.task_days (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    user_id uuid,
+    user_id uuid NOT NULL,
     date date DEFAULT (now())::date,
     count integer DEFAULT 0,
-    total_duration time without time zone
+    total_duration interval DEFAULT '00:00:00'::interval
 );
 
 
@@ -89,12 +109,11 @@ ALTER TABLE public.task_days OWNER TO root;
 
 CREATE TABLE public.tasks (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    task_day_id uuid,
-    user_id uuid,
+    task_day_id uuid NOT NULL,
     title character varying NOT NULL,
     description character varying,
-    duration time without time zone NOT NULL,
-    completed boolean
+    duration interval NOT NULL,
+    completed boolean DEFAULT false
 );
 
 
@@ -109,7 +128,8 @@ CREATE TABLE public.users (
     email character varying NOT NULL,
     name character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    timezone character varying DEFAULT 'UTC'::character varying NOT NULL
 );
 
 
@@ -156,11 +176,34 @@ ALTER TABLE ONLY public.tasks
 
 
 --
+-- Name: task_days user_id_date_unique; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.task_days
+    ADD CONSTRAINT user_id_date_unique UNIQUE (user_id, date);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: root
 --
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: challenge_entries_challenge_id_idx; Type: INDEX; Schema: public; Owner: root
+--
+
+CREATE INDEX challenge_entries_challenge_id_idx ON public.challenge_entries USING btree (challenge_id);
 
 
 --
@@ -178,6 +221,13 @@ CREATE INDEX challenges_start_date_idx ON public.challenges USING btree (start_d
 
 
 --
+-- Name: challenges_user_id_idx; Type: INDEX; Schema: public; Owner: root
+--
+
+CREATE INDEX challenges_user_id_idx ON public.challenges USING btree (user_id);
+
+
+--
 -- Name: task_days_date_idx; Type: INDEX; Schema: public; Owner: root
 --
 
@@ -185,10 +235,17 @@ CREATE INDEX task_days_date_idx ON public.task_days USING btree (date);
 
 
 --
--- Name: users_id_idx; Type: INDEX; Schema: public; Owner: root
+-- Name: task_days_user_id_idx; Type: INDEX; Schema: public; Owner: root
 --
 
-CREATE INDEX users_id_idx ON public.users USING btree (id);
+CREATE INDEX task_days_user_id_idx ON public.task_days USING btree (user_id);
+
+
+--
+-- Name: tasks_task_day_id_idx; Type: INDEX; Schema: public; Owner: root
+--
+
+CREATE INDEX tasks_task_day_id_idx ON public.tasks USING btree (task_day_id);
 
 
 --
@@ -196,15 +253,7 @@ CREATE INDEX users_id_idx ON public.users USING btree (id);
 --
 
 ALTER TABLE ONLY public.challenge_entries
-    ADD CONSTRAINT challenge_entries_challenge_id_fkey FOREIGN KEY (challenge_id) REFERENCES public.challenges(id);
-
-
---
--- Name: challenge_entries challenge_entries_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.challenge_entries
-    ADD CONSTRAINT challenge_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT challenge_entries_challenge_id_fkey FOREIGN KEY (challenge_id) REFERENCES public.challenges(id) ON DELETE CASCADE;
 
 
 --
@@ -212,7 +261,7 @@ ALTER TABLE ONLY public.challenge_entries
 --
 
 ALTER TABLE ONLY public.challenges
-    ADD CONSTRAINT challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -220,7 +269,7 @@ ALTER TABLE ONLY public.challenges
 --
 
 ALTER TABLE ONLY public.task_days
-    ADD CONSTRAINT task_days_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT task_days_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -228,15 +277,7 @@ ALTER TABLE ONLY public.task_days
 --
 
 ALTER TABLE ONLY public.tasks
-    ADD CONSTRAINT tasks_task_day_id_fkey FOREIGN KEY (task_day_id) REFERENCES public.task_days(id);
-
-
---
--- Name: tasks tasks_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.tasks
-    ADD CONSTRAINT tasks_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT tasks_task_day_id_fkey FOREIGN KEY (task_day_id) REFERENCES public.task_days(id) ON DELETE CASCADE;
 
 
 --
