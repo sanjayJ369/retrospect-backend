@@ -17,7 +17,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2
 )
-RETURNING id, email, name, created_at, updated_at
+RETURNING id, email, name, created_at, updated_at, timezone
 `
 
 type CreateUserParams struct {
@@ -34,6 +34,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
@@ -41,7 +42,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 const deleteUser = `-- name: DeleteUser :one
 DELETE FROM users
 WHERE id = $1
-RETURNING id, email, name, created_at, updated_at
+RETURNING id, email, name, created_at, updated_at, timezone
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) {
@@ -53,12 +54,13 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) 
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, name, created_at, updated_at FROM users
+SELECT id, email, name, created_at, updated_at, timezone FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -71,12 +73,13 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, name, created_at, updated_at FROM users
+SELECT id, email, name, created_at, updated_at, timezone FROM users
 ORDER BY name
 LIMIT $1
 OFFSET $2
@@ -102,6 +105,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Timezone,
 		); err != nil {
 			return nil, err
 		}
@@ -113,20 +117,89 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 	return items, nil
 }
 
-const updateUser = `-- name: UpdateUser :exec
+const updateUserEmail = `-- name: UpdateUserEmail :one
 UPDATE users
-  set name = $2,
-  email = $3
-WHERE id = $1
+SET
+  email = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
+RETURNING id, email, name, created_at, updated_at, timezone
 `
 
-type UpdateUserParams struct {
+type UpdateUserEmailParams struct {
 	ID    pgtype.UUID `json:"id"`
-	Name  string      `json:"name"`
 	Email string      `json:"email"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
-	_, err := q.db.Exec(ctx, updateUser, arg.ID, arg.Name, arg.Email)
-	return err
+func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserEmail, arg.ID, arg.Email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+	)
+	return i, err
+}
+
+const updateUserName = `-- name: UpdateUserName :one
+UPDATE users
+SET
+  name = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
+RETURNING id, email, name, created_at, updated_at, timezone
+`
+
+type UpdateUserNameParams struct {
+	ID   pgtype.UUID `json:"id"`
+	Name string      `json:"name"`
+}
+
+func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserName, arg.ID, arg.Name)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+	)
+	return i, err
+}
+
+const updateUserTimezone = `-- name: UpdateUserTimezone :one
+UPDATE users
+SET
+  timezone = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
+RETURNING id, email, name, created_at, updated_at, timezone
+`
+
+type UpdateUserTimezoneParams struct {
+	ID       pgtype.UUID `json:"id"`
+	Timezone string      `json:"timezone"`
+}
+
+func (q *Queries) UpdateUserTimezone(ctx context.Context, arg UpdateUserTimezoneParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserTimezone, arg.ID, arg.Timezone)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+	)
+	return i, err
 }

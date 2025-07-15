@@ -16,11 +16,33 @@ ORDER BY name
 LIMIT $1
 OFFSET $2;
 
--- name: UpdateUser :exec
+-- name: UpdateUserName :one
 UPDATE users
-  set name = $2,
-  email = $3
-WHERE id = $1;
+SET
+  name = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
+RETURNING *;
+
+-- name: UpdateUserEmail :one
+UPDATE users
+SET
+  email = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
+RETURNING *;
+
+-- name: UpdateUserTimezone :one
+UPDATE users
+SET
+  timezone = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
+RETURNING *;
+
 
 -- name: DeleteUser :one
 DELETE FROM users

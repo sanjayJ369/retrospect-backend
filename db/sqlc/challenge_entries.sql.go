@@ -13,26 +13,19 @@ import (
 
 const createChallengeEntry = `-- name: CreateChallengeEntry :one
 INSERT INTO challenge_entries (
-  challenge_id,
-  user_id
+  challenge_id
 ) VALUES (
-  $1, $2
+  $1
 )
-RETURNING id, challenge_id, user_id, date, completed, created_at
+RETURNING id, challenge_id, date, completed, created_at
 `
 
-type CreateChallengeEntryParams struct {
-	ChallengeID pgtype.UUID `json:"challenge_id"`
-	UserID      pgtype.UUID `json:"user_id"`
-}
-
-func (q *Queries) CreateChallengeEntry(ctx context.Context, arg CreateChallengeEntryParams) (ChallengeEntry, error) {
-	row := q.db.QueryRow(ctx, createChallengeEntry, arg.ChallengeID, arg.UserID)
+func (q *Queries) CreateChallengeEntry(ctx context.Context, challengeID pgtype.UUID) (ChallengeEntry, error) {
+	row := q.db.QueryRow(ctx, createChallengeEntry, challengeID)
 	var i ChallengeEntry
 	err := row.Scan(
 		&i.ID,
 		&i.ChallengeID,
-		&i.UserID,
 		&i.Date,
 		&i.Completed,
 		&i.CreatedAt,
@@ -43,7 +36,7 @@ func (q *Queries) CreateChallengeEntry(ctx context.Context, arg CreateChallengeE
 const deleteChallengeEntry = `-- name: DeleteChallengeEntry :one
 DELETE FROM challenge_entries
 WHERE id = $1
-RETURNING id, challenge_id, user_id, date, completed, created_at
+RETURNING id, challenge_id, date, completed, created_at
 `
 
 func (q *Queries) DeleteChallengeEntry(ctx context.Context, id pgtype.UUID) (ChallengeEntry, error) {
@@ -52,7 +45,6 @@ func (q *Queries) DeleteChallengeEntry(ctx context.Context, id pgtype.UUID) (Cha
 	err := row.Scan(
 		&i.ID,
 		&i.ChallengeID,
-		&i.UserID,
 		&i.Date,
 		&i.Completed,
 		&i.CreatedAt,
@@ -61,7 +53,7 @@ func (q *Queries) DeleteChallengeEntry(ctx context.Context, id pgtype.UUID) (Cha
 }
 
 const getChallengeEntry = `-- name: GetChallengeEntry :one
-SELECT id, challenge_id, user_id, date, completed, created_at FROM challenge_entries
+SELECT id, challenge_id, date, completed, created_at FROM challenge_entries
 WHERE id = $1 LIMIT 1
 `
 
@@ -71,7 +63,6 @@ func (q *Queries) GetChallengeEntry(ctx context.Context, id pgtype.UUID) (Challe
 	err := row.Scan(
 		&i.ID,
 		&i.ChallengeID,
-		&i.UserID,
 		&i.Date,
 		&i.Completed,
 		&i.CreatedAt,
@@ -80,7 +71,7 @@ func (q *Queries) GetChallengeEntry(ctx context.Context, id pgtype.UUID) (Challe
 }
 
 const listChallengeEntries = `-- name: ListChallengeEntries :many
-SELECT id, challenge_id, user_id, date, completed, created_at FROM challenge_entries
+SELECT id, challenge_id, date, completed, created_at FROM challenge_entries
 ORDER BY created_at
 LIMIT $1
 OFFSET $2
@@ -103,7 +94,6 @@ func (q *Queries) ListChallengeEntries(ctx context.Context, arg ListChallengeEnt
 		if err := rows.Scan(
 			&i.ID,
 			&i.ChallengeID,
-			&i.UserID,
 			&i.Date,
 			&i.Completed,
 			&i.CreatedAt,

@@ -1,8 +1,8 @@
 -- name: CreateChallenge :one
 INSERT INTO challenges (
-  title, user_id, description, end_date, duration
+  title, user_id, description, end_date
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4
 )
 RETURNING *;
 
@@ -16,16 +16,51 @@ ORDER BY start_date
 LIMIT $1
 OFFSET $2;
 
--- name: UpdateChallenge :exec
+-- name: UpdateChallengeTitle :one
 UPDATE challenges
-  set title = $2,
-  description = $3, 
-  end_date = $4, 
-  duration = $5, 
-  active = $6
-WHERE id = $1;
+SET
+  title = $2
+WHERE
+  id = $1
+RETURNING *;
+
+-- name: UpdateChallengeDescription :one
+UPDATE challenges
+SET
+  description = $2
+WHERE
+  id = $1
+RETURNING *;
+
+-- name: UpdateChallengeEndDate :one
+UPDATE challenges
+SET
+  end_date = $2
+WHERE
+  id = $1
+RETURNING *;
+
+-- name: UpdateChallengeActiveStatus :one
+UPDATE challenges
+SET
+  active = $2
+WHERE
+  id = $1
+RETURNING *;
+
+-- name: UpdateChallengeDetails :one
+-- This query updates multiple common fields together
+UPDATE challenges
+SET
+  title = $2,
+  description = $3,
+  end_date = $4
+WHERE
+  id = $1
+RETURNING *;
+
 
 -- name: DeleteChallenge :one
-DELETE FROM users
+DELETE FROM challenges
 WHERE id = $1
 RETURNING *;

@@ -1,8 +1,8 @@
 -- name: CreateTask :one
 INSERT INTO tasks (
-    task_day_id, user_id, title, description, duration
+    task_day_id, title, description, duration
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4
 )
 RETURNING *;
 

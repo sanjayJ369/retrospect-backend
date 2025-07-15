@@ -13,25 +13,23 @@ import (
 
 const createTask = `-- name: CreateTask :one
 INSERT INTO tasks (
-    task_day_id, user_id, title, description, duration
+    task_day_id, title, description, duration
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4
 )
-RETURNING id, task_day_id, user_id, title, description, duration, completed
+RETURNING id, task_day_id, title, description, duration, completed
 `
 
 type CreateTaskParams struct {
-	TaskDayID   pgtype.UUID `json:"task_day_id"`
-	UserID      pgtype.UUID `json:"user_id"`
-	Title       string      `json:"title"`
-	Description pgtype.Text `json:"description"`
-	Duration    pgtype.Time `json:"duration"`
+	TaskDayID   pgtype.UUID     `json:"task_day_id"`
+	Title       string          `json:"title"`
+	Description pgtype.Text     `json:"description"`
+	Duration    pgtype.Interval `json:"duration"`
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
 	row := q.db.QueryRow(ctx, createTask,
 		arg.TaskDayID,
-		arg.UserID,
 		arg.Title,
 		arg.Description,
 		arg.Duration,
@@ -40,7 +38,6 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 	err := row.Scan(
 		&i.ID,
 		&i.TaskDayID,
-		&i.UserID,
 		&i.Title,
 		&i.Description,
 		&i.Duration,
@@ -52,7 +49,7 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 const deleteTask = `-- name: DeleteTask :one
 DELETE FROM tasks
 WHERE id = $1
-RETURNING id, task_day_id, user_id, title, description, duration, completed
+RETURNING id, task_day_id, title, description, duration, completed
 `
 
 func (q *Queries) DeleteTask(ctx context.Context, id pgtype.UUID) (Task, error) {
@@ -61,7 +58,6 @@ func (q *Queries) DeleteTask(ctx context.Context, id pgtype.UUID) (Task, error) 
 	err := row.Scan(
 		&i.ID,
 		&i.TaskDayID,
-		&i.UserID,
 		&i.Title,
 		&i.Description,
 		&i.Duration,
@@ -71,7 +67,7 @@ func (q *Queries) DeleteTask(ctx context.Context, id pgtype.UUID) (Task, error) 
 }
 
 const getTask = `-- name: GetTask :one
-SELECT id, task_day_id, user_id, title, description, duration, completed FROM tasks
+SELECT id, task_day_id, title, description, duration, completed FROM tasks
 WHERE id = $1 LIMIT 1
 `
 
@@ -81,7 +77,6 @@ func (q *Queries) GetTask(ctx context.Context, id pgtype.UUID) (Task, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.TaskDayID,
-		&i.UserID,
 		&i.Title,
 		&i.Description,
 		&i.Duration,
@@ -91,7 +86,7 @@ func (q *Queries) GetTask(ctx context.Context, id pgtype.UUID) (Task, error) {
 }
 
 const listTasks = `-- name: ListTasks :many
-SELECT id, task_day_id, user_id, title, description, duration, completed FROM tasks
+SELECT id, task_day_id, title, description, duration, completed FROM tasks
 ORDER BY title
 LIMIT $1
 OFFSET $2
@@ -114,7 +109,6 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 		if err := rows.Scan(
 			&i.ID,
 			&i.TaskDayID,
-			&i.UserID,
 			&i.Title,
 			&i.Description,
 			&i.Duration,
@@ -140,11 +134,11 @@ WHERE id = $1
 `
 
 type UpdateTaskParams struct {
-	ID          pgtype.UUID `json:"id"`
-	Title       string      `json:"title"`
-	Description pgtype.Text `json:"description"`
-	Duration    pgtype.Time `json:"duration"`
-	Completed   pgtype.Bool `json:"completed"`
+	ID          pgtype.UUID     `json:"id"`
+	Title       string          `json:"title"`
+	Description pgtype.Text     `json:"description"`
+	Duration    pgtype.Interval `json:"duration"`
+	Completed   pgtype.Bool     `json:"completed"`
 }
 
 func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) error {

@@ -1,9 +1,8 @@
 -- name: CreateChallengeEntry :one
 INSERT INTO challenge_entries (
-  challenge_id,
-  user_id
+  challenge_id
 ) VALUES (
-  $1, $2
+  $1
 )
 RETURNING *;
 

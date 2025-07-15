@@ -13,11 +13,11 @@ import (
 
 const createChallenge = `-- name: CreateChallenge :one
 INSERT INTO challenges (
-  title, user_id, description, end_date, duration
+  title, user_id, description, end_date
 ) VALUES (
-  $1, $2, $3, $4, $5
+  $1, $2, $3, $4
 )
-RETURNING id, title, user_id, description, start_date, end_date, duration, active, created_at
+RETURNING id, title, user_id, description, start_date, end_date, active, created_at
 `
 
 type CreateChallengeParams struct {
@@ -25,7 +25,6 @@ type CreateChallengeParams struct {
 	UserID      pgtype.UUID `json:"user_id"`
 	Description pgtype.Text `json:"description"`
 	EndDate     pgtype.Date `json:"end_date"`
-	Duration    pgtype.Int4 `json:"duration"`
 }
 
 func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams) (Challenge, error) {
@@ -34,7 +33,6 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 		arg.UserID,
 		arg.Description,
 		arg.EndDate,
-		arg.Duration,
 	)
 	var i Challenge
 	err := row.Scan(
@@ -44,7 +42,6 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 		&i.Description,
 		&i.StartDate,
 		&i.EndDate,
-		&i.Duration,
 		&i.Active,
 		&i.CreatedAt,
 	)
@@ -52,26 +49,29 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 }
 
 const deleteChallenge = `-- name: DeleteChallenge :one
-DELETE FROM users
+DELETE FROM challenges
 WHERE id = $1
-RETURNING id, email, name, created_at, updated_at
+RETURNING id, title, user_id, description, start_date, end_date, active, created_at
 `
 
-func (q *Queries) DeleteChallenge(ctx context.Context, id pgtype.UUID) (User, error) {
+func (q *Queries) DeleteChallenge(ctx context.Context, id pgtype.UUID) (Challenge, error) {
 	row := q.db.QueryRow(ctx, deleteChallenge, id)
-	var i User
+	var i Challenge
 	err := row.Scan(
 		&i.ID,
-		&i.Email,
-		&i.Name,
+		&i.Title,
+		&i.UserID,
+		&i.Description,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Active,
 		&i.CreatedAt,
-		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getChallenge = `-- name: GetChallenge :one
-SELECT id, title, user_id, description, start_date, end_date, duration, active, created_at FROM challenges
+SELECT id, title, user_id, description, start_date, end_date, active, created_at FROM challenges
 WHERE id = $1 LIMIT 1
 `
 
@@ -85,7 +85,6 @@ func (q *Queries) GetChallenge(ctx context.Context, id pgtype.UUID) (Challenge, 
 		&i.Description,
 		&i.StartDate,
 		&i.EndDate,
-		&i.Duration,
 		&i.Active,
 		&i.CreatedAt,
 	)
@@ -93,7 +92,7 @@ func (q *Queries) GetChallenge(ctx context.Context, id pgtype.UUID) (Challenge, 
 }
 
 const listChallenges = `-- name: ListChallenges :many
-SELECT id, title, user_id, description, start_date, end_date, duration, active, created_at FROM challenges
+SELECT id, title, user_id, description, start_date, end_date, active, created_at FROM challenges
 ORDER BY start_date
 LIMIT $1
 OFFSET $2
@@ -120,7 +119,6 @@ func (q *Queries) ListChallenges(ctx context.Context, arg ListChallengesParams) 
 			&i.Description,
 			&i.StartDate,
 			&i.EndDate,
-			&i.Duration,
 			&i.Active,
 			&i.CreatedAt,
 		); err != nil {
@@ -134,33 +132,162 @@ func (q *Queries) ListChallenges(ctx context.Context, arg ListChallengesParams) 
 	return items, nil
 }
 
-const updateChallenge = `-- name: UpdateChallenge :exec
+const updateChallengeActiveStatus = `-- name: UpdateChallengeActiveStatus :one
 UPDATE challenges
-  set title = $2,
-  description = $3, 
-  end_date = $4, 
-  duration = $5, 
-  active = $6
-WHERE id = $1
+SET
+  active = $2
+WHERE
+  id = $1
+RETURNING id, title, user_id, description, start_date, end_date, active, created_at
 `
 
-type UpdateChallengeParams struct {
+type UpdateChallengeActiveStatusParams struct {
+	ID     pgtype.UUID `json:"id"`
+	Active pgtype.Bool `json:"active"`
+}
+
+func (q *Queries) UpdateChallengeActiveStatus(ctx context.Context, arg UpdateChallengeActiveStatusParams) (Challenge, error) {
+	row := q.db.QueryRow(ctx, updateChallengeActiveStatus, arg.ID, arg.Active)
+	var i Challenge
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserID,
+		&i.Description,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateChallengeDescription = `-- name: UpdateChallengeDescription :one
+UPDATE challenges
+SET
+  description = $2
+WHERE
+  id = $1
+RETURNING id, title, user_id, description, start_date, end_date, active, created_at
+`
+
+type UpdateChallengeDescriptionParams struct {
+	ID          pgtype.UUID `json:"id"`
+	Description pgtype.Text `json:"description"`
+}
+
+func (q *Queries) UpdateChallengeDescription(ctx context.Context, arg UpdateChallengeDescriptionParams) (Challenge, error) {
+	row := q.db.QueryRow(ctx, updateChallengeDescription, arg.ID, arg.Description)
+	var i Challenge
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserID,
+		&i.Description,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateChallengeDetails = `-- name: UpdateChallengeDetails :one
+UPDATE challenges
+SET
+  title = $2,
+  description = $3,
+  end_date = $4
+WHERE
+  id = $1
+RETURNING id, title, user_id, description, start_date, end_date, active, created_at
+`
+
+type UpdateChallengeDetailsParams struct {
 	ID          pgtype.UUID `json:"id"`
 	Title       string      `json:"title"`
 	Description pgtype.Text `json:"description"`
 	EndDate     pgtype.Date `json:"end_date"`
-	Duration    pgtype.Int4 `json:"duration"`
-	Active      pgtype.Bool `json:"active"`
 }
 
-func (q *Queries) UpdateChallenge(ctx context.Context, arg UpdateChallengeParams) error {
-	_, err := q.db.Exec(ctx, updateChallenge,
+// This query updates multiple common fields together
+func (q *Queries) UpdateChallengeDetails(ctx context.Context, arg UpdateChallengeDetailsParams) (Challenge, error) {
+	row := q.db.QueryRow(ctx, updateChallengeDetails,
 		arg.ID,
 		arg.Title,
 		arg.Description,
 		arg.EndDate,
-		arg.Duration,
-		arg.Active,
 	)
-	return err
+	var i Challenge
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserID,
+		&i.Description,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateChallengeEndDate = `-- name: UpdateChallengeEndDate :one
+UPDATE challenges
+SET
+  end_date = $2
+WHERE
+  id = $1
+RETURNING id, title, user_id, description, start_date, end_date, active, created_at
+`
+
+type UpdateChallengeEndDateParams struct {
+	ID      pgtype.UUID `json:"id"`
+	EndDate pgtype.Date `json:"end_date"`
+}
+
+func (q *Queries) UpdateChallengeEndDate(ctx context.Context, arg UpdateChallengeEndDateParams) (Challenge, error) {
+	row := q.db.QueryRow(ctx, updateChallengeEndDate, arg.ID, arg.EndDate)
+	var i Challenge
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserID,
+		&i.Description,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateChallengeTitle = `-- name: UpdateChallengeTitle :one
+UPDATE challenges
+SET
+  title = $2
+WHERE
+  id = $1
+RETURNING id, title, user_id, description, start_date, end_date, active, created_at
+`
+
+type UpdateChallengeTitleParams struct {
+	ID    pgtype.UUID `json:"id"`
+	Title string      `json:"title"`
+}
+
+func (q *Queries) UpdateChallengeTitle(ctx context.Context, arg UpdateChallengeTitleParams) (Challenge, error) {
+	row := q.db.QueryRow(ctx, updateChallengeTitle, arg.ID, arg.Title)
+	var i Challenge
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserID,
+		&i.Description,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
 }

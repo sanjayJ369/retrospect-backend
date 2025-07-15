@@ -15,7 +15,6 @@ type Challenge struct {
 	Description pgtype.Text      `json:"description"`
 	StartDate   pgtype.Date      `json:"start_date"`
 	EndDate     pgtype.Date      `json:"end_date"`
-	Duration    pgtype.Int4      `json:"duration"`
 	Active      pgtype.Bool      `json:"active"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
 }
@@ -23,10 +22,21 @@ type Challenge struct {
 type ChallengeEntry struct {
 	ID          pgtype.UUID      `json:"id"`
 	ChallengeID pgtype.UUID      `json:"challenge_id"`
-	UserID      pgtype.UUID      `json:"user_id"`
 	Date        pgtype.Date      `json:"date"`
 	Completed   pgtype.Bool      `json:"completed"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
+}
+
+type CurrentChallengesView struct {
+	ID          pgtype.UUID      `json:"id"`
+	Title       string           `json:"title"`
+	UserID      pgtype.UUID      `json:"user_id"`
+	Description pgtype.Text      `json:"description"`
+	StartDate   pgtype.Date      `json:"start_date"`
+	EndDate     pgtype.Date      `json:"end_date"`
+	Active      pgtype.Bool      `json:"active"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	Duration    interface{}      `json:"duration"`
 }
 
 type SchemaMigration struct {
@@ -35,21 +45,20 @@ type SchemaMigration struct {
 }
 
 type Task struct {
-	ID          pgtype.UUID `json:"id"`
-	TaskDayID   pgtype.UUID `json:"task_day_id"`
-	UserID      pgtype.UUID `json:"user_id"`
-	Title       string      `json:"title"`
-	Description pgtype.Text `json:"description"`
-	Duration    pgtype.Time `json:"duration"`
-	Completed   pgtype.Bool `json:"completed"`
+	ID          pgtype.UUID     `json:"id"`
+	TaskDayID   pgtype.UUID     `json:"task_day_id"`
+	Title       string          `json:"title"`
+	Description pgtype.Text     `json:"description"`
+	Duration    pgtype.Interval `json:"duration"`
+	Completed   pgtype.Bool     `json:"completed"`
 }
 
 type TaskDay struct {
-	ID            pgtype.UUID `json:"id"`
-	UserID        pgtype.UUID `json:"user_id"`
-	Date          pgtype.Date `json:"date"`
-	Count         pgtype.Int4 `json:"count"`
-	TotalDuration pgtype.Time `json:"total_duration"`
+	ID            pgtype.UUID     `json:"id"`
+	UserID        pgtype.UUID     `json:"user_id"`
+	Date          pgtype.Date     `json:"date"`
+	Count         pgtype.Int4     `json:"count"`
+	TotalDuration pgtype.Interval `json:"total_duration"`
 }
 
 type User struct {
@@ -58,4 +67,5 @@ type User struct {
 	Name      string           `json:"name"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	Timezone  string           `json:"timezone"`
 }
