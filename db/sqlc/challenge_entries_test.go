@@ -2,9 +2,10 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,7 +46,7 @@ func TestDeleteChallengeEntry(t *testing.T) {
 	challengeEntry3, err := testQueries.GetChallengeEntry(context.Background(), challengeEntry1.ID)
 	require.Error(t, err)
 	require.Empty(t, challengeEntry3)
-	require.Equal(t, err, sql.ErrNoRows)
+	require.Equal(t, err, pgx.ErrNoRows)
 }
 
 func TestListChallengeEntries(t *testing.T) {
@@ -74,7 +75,7 @@ func TestUpdateChallengeEntry(t *testing.T) {
 	// Test updating to completed
 	arg := UpdateChallengeEntryParams{
 		ID: challengeEntry1.ID,
-		Completed: sql.NullBool{
+		Completed: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
 		},
@@ -96,7 +97,7 @@ func TestUpdateChallengeEntryToNotCompleted(t *testing.T) {
 
 	arg := UpdateChallengeEntryParams{
 		ID: challengeEntry1.ID,
-		Completed: sql.NullBool{
+		Completed: pgtype.Bool{
 			Bool:  false,
 			Valid: true,
 		},
@@ -117,7 +118,7 @@ func TestUpdateChallengeEntryToNull(t *testing.T) {
 
 	arg := UpdateChallengeEntryParams{
 		ID: challengeEntry1.ID,
-		Completed: sql.NullBool{
+		Completed: pgtype.Bool{
 			Bool:  false,
 			Valid: false,
 		},

@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const listTaskDaysByUserId = `-- name: ListTaskDaysByUserId :many
@@ -20,13 +20,13 @@ OFFSET $3
 `
 
 type ListTaskDaysByUserIdParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Limit  int32     `json:"limit"`
-	Offset int32     `json:"offset"`
+	UserID pgtype.UUID `json:"user_id"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
 }
 
 func (q *Queries) ListTaskDaysByUserId(ctx context.Context, arg ListTaskDaysByUserIdParams) ([]TaskDay, error) {
-	rows, err := q.db.QueryContext(ctx, listTaskDaysByUserId, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listTaskDaysByUserId, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +45,6 @@ func (q *Queries) ListTaskDaysByUserId(ctx context.Context, arg ListTaskDaysByUs
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -59,8 +56,8 @@ SELECT id, task_day_id, title, description, duration, completed FROM tasks
 WHERE task_day_id = $1
 `
 
-func (q *Queries) ListTasksByTaskDayId(ctx context.Context, taskDayID uuid.UUID) ([]Task, error) {
-	rows, err := q.db.QueryContext(ctx, listTasksByTaskDayId, taskDayID)
+func (q *Queries) ListTasksByTaskDayId(ctx context.Context, taskDayID pgtype.UUID) ([]Task, error) {
+	rows, err := q.db.Query(ctx, listTasksByTaskDayId, taskDayID)
 	if err != nil {
 		return nil, err
 	}
@@ -79,9 +76,6 @@ func (q *Queries) ListTasksByTaskDayId(ctx context.Context, taskDayID uuid.UUID)
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

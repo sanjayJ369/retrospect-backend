@@ -7,9 +7,8 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createChallengeEntry = `-- name: CreateChallengeEntry :one
@@ -21,8 +20,8 @@ INSERT INTO challenge_entries (
 RETURNING id, challenge_id, date, completed, created_at
 `
 
-func (q *Queries) CreateChallengeEntry(ctx context.Context, challengeID uuid.UUID) (ChallengeEntry, error) {
-	row := q.db.QueryRowContext(ctx, createChallengeEntry, challengeID)
+func (q *Queries) CreateChallengeEntry(ctx context.Context, challengeID pgtype.UUID) (ChallengeEntry, error) {
+	row := q.db.QueryRow(ctx, createChallengeEntry, challengeID)
 	var i ChallengeEntry
 	err := row.Scan(
 		&i.ID,
@@ -40,8 +39,8 @@ WHERE id = $1
 RETURNING id, challenge_id, date, completed, created_at
 `
 
-func (q *Queries) DeleteChallengeEntry(ctx context.Context, id uuid.UUID) (ChallengeEntry, error) {
-	row := q.db.QueryRowContext(ctx, deleteChallengeEntry, id)
+func (q *Queries) DeleteChallengeEntry(ctx context.Context, id pgtype.UUID) (ChallengeEntry, error) {
+	row := q.db.QueryRow(ctx, deleteChallengeEntry, id)
 	var i ChallengeEntry
 	err := row.Scan(
 		&i.ID,
@@ -58,8 +57,8 @@ SELECT id, challenge_id, date, completed, created_at FROM challenge_entries
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetChallengeEntry(ctx context.Context, id uuid.UUID) (ChallengeEntry, error) {
-	row := q.db.QueryRowContext(ctx, getChallengeEntry, id)
+func (q *Queries) GetChallengeEntry(ctx context.Context, id pgtype.UUID) (ChallengeEntry, error) {
+	row := q.db.QueryRow(ctx, getChallengeEntry, id)
 	var i ChallengeEntry
 	err := row.Scan(
 		&i.ID,
@@ -84,7 +83,7 @@ type ListChallengeEntriesParams struct {
 }
 
 func (q *Queries) ListChallengeEntries(ctx context.Context, arg ListChallengeEntriesParams) ([]ChallengeEntry, error) {
-	rows, err := q.db.QueryContext(ctx, listChallengeEntries, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listChallengeEntries, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -103,9 +102,6 @@ func (q *Queries) ListChallengeEntries(ctx context.Context, arg ListChallengeEnt
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -119,11 +115,11 @@ WHERE id = $1
 `
 
 type UpdateChallengeEntryParams struct {
-	ID        uuid.UUID    `json:"id"`
-	Completed sql.NullBool `json:"completed"`
+	ID        pgtype.UUID `json:"id"`
+	Completed pgtype.Bool `json:"completed"`
 }
 
 func (q *Queries) UpdateChallengeEntry(ctx context.Context, arg UpdateChallengeEntryParams) error {
-	_, err := q.db.ExecContext(ctx, updateChallengeEntry, arg.ID, arg.Completed)
+	_, err := q.db.Exec(ctx, updateChallengeEntry, arg.ID, arg.Completed)
 	return err
 }

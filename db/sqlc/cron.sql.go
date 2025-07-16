@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createTaskDaysForUsersInTimezone = `-- name: CreateTaskDaysForUsersInTimezone :exec
@@ -19,8 +21,8 @@ ON CONFLICT (user_id, date) DO NOTHING
 
 // Creates new task_day entries for all users in a given timezone for their "today".
 // The `(NOW() AT TIME ZONE $1)::date` correctly calculates the user's current date.
-func (q *Queries) CreateTaskDaysForUsersInTimezone(ctx context.Context, timezone int64) error {
-	_, err := q.db.ExecContext(ctx, createTaskDaysForUsersInTimezone, timezone)
+func (q *Queries) CreateTaskDaysForUsersInTimezone(ctx context.Context, timezone pgtype.Interval) error {
+	_, err := q.db.Exec(ctx, createTaskDaysForUsersInTimezone, timezone)
 	return err
 }
 
@@ -32,7 +34,7 @@ WHERE EXTRACT(HOUR FROM (NOW() AT TIME ZONE timezone)) = 0
 // Finds all distinct timezones where the current local time is at the beginning of a new day (e.g., 00:00 to 00:59).
 // We can then find all users for these timezones.
 func (q *Queries) GetTimezonesWhereDayIsStarting(ctx context.Context) ([]string, error) {
-	rows, err := q.db.QueryContext(ctx, getTimezonesWhereDayIsStarting)
+	rows, err := q.db.Query(ctx, getTimezonesWhereDayIsStarting)
 	if err != nil {
 		return nil, err
 	}
@@ -44,9 +46,6 @@ func (q *Queries) GetTimezonesWhereDayIsStarting(ctx context.Context) ([]string,
 			return nil, err
 		}
 		items = append(items, timezone)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -79,6 +78,6 @@ WHERE task_days.id = daily_summary.task_day_id
 // For a given timezone, finds all task_days from "yesterday" and updates their totals.
 // This is much more efficient than fetching IDs into Go and updating one by one.
 func (q *Queries) UpdateTaskDayTotalsForUsersInTimezone(ctx context.Context, timezone string) error {
-	_, err := q.db.ExecContext(ctx, updateTaskDayTotalsForUsersInTimezone, timezone)
+	_, err := q.db.Exec(ctx, updateTaskDayTotalsForUsersInTimezone, timezone)
 	return err
 }

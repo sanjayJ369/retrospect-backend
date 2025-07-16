@@ -2,9 +2,9 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/sanjayj369/retrospect-backend/util"
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +38,7 @@ func TestDeleteUser(t *testing.T) {
 	user3, err := testQueries.GetUser(context.Background(), user1.ID)
 	require.Error(t, err)
 	require.Empty(t, user3)
-	require.Equal(t, err, sql.ErrNoRows)
+	require.Equal(t, err, pgx.ErrNoRows)
 }
 
 func TestGetUser(t *testing.T) {

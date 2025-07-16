@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -26,7 +26,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.Name)
+	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Name)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -45,8 +45,8 @@ WHERE id = $1
 RETURNING id, email, name, created_at, updated_at, timezone
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, deleteUser, id)
+func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, deleteUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -64,8 +64,8 @@ SELECT id, email, name, created_at, updated_at, timezone FROM users
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, id)
+func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -91,7 +91,7 @@ type ListUsersParams struct {
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, listUsers, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listUsers, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -111,9 +111,6 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -131,12 +128,12 @@ RETURNING id, email, name, created_at, updated_at, timezone
 `
 
 type UpdateUserEmailParams struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID    pgtype.UUID `json:"id"`
+	Email string      `json:"email"`
 }
 
 func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUserEmail, arg.ID, arg.Email)
+	row := q.db.QueryRow(ctx, updateUserEmail, arg.ID, arg.Email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -160,12 +157,12 @@ RETURNING id, email, name, created_at, updated_at, timezone
 `
 
 type UpdateUserNameParams struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID   pgtype.UUID `json:"id"`
+	Name string      `json:"name"`
 }
 
 func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUserName, arg.ID, arg.Name)
+	row := q.db.QueryRow(ctx, updateUserName, arg.ID, arg.Name)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -189,12 +186,12 @@ RETURNING id, email, name, created_at, updated_at, timezone
 `
 
 type UpdateUserTimezoneParams struct {
-	ID       uuid.UUID `json:"id"`
-	Timezone string    `json:"timezone"`
+	ID       pgtype.UUID `json:"id"`
+	Timezone string      `json:"timezone"`
 }
 
 func (q *Queries) UpdateUserTimezone(ctx context.Context, arg UpdateUserTimezoneParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUserTimezone, arg.ID, arg.Timezone)
+	row := q.db.QueryRow(ctx, updateUserTimezone, arg.ID, arg.Timezone)
 	var i User
 	err := row.Scan(
 		&i.ID,
