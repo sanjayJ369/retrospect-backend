@@ -7,8 +7,9 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createChallenge = `-- name: CreateChallenge :one
@@ -21,14 +22,14 @@ RETURNING id, title, user_id, description, start_date, end_date, active, created
 `
 
 type CreateChallengeParams struct {
-	Title       string      `json:"title"`
-	UserID      pgtype.UUID `json:"user_id"`
-	Description pgtype.Text `json:"description"`
-	EndDate     pgtype.Date `json:"end_date"`
+	Title       string         `json:"title"`
+	UserID      uuid.UUID      `json:"user_id"`
+	Description sql.NullString `json:"description"`
+	EndDate     sql.NullTime   `json:"end_date"`
 }
 
 func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams) (Challenge, error) {
-	row := q.db.QueryRow(ctx, createChallenge,
+	row := q.db.QueryRowContext(ctx, createChallenge,
 		arg.Title,
 		arg.UserID,
 		arg.Description,
@@ -54,8 +55,8 @@ WHERE id = $1
 RETURNING id, title, user_id, description, start_date, end_date, active, created_at
 `
 
-func (q *Queries) DeleteChallenge(ctx context.Context, id pgtype.UUID) (Challenge, error) {
-	row := q.db.QueryRow(ctx, deleteChallenge, id)
+func (q *Queries) DeleteChallenge(ctx context.Context, id uuid.UUID) (Challenge, error) {
+	row := q.db.QueryRowContext(ctx, deleteChallenge, id)
 	var i Challenge
 	err := row.Scan(
 		&i.ID,
@@ -75,8 +76,8 @@ SELECT id, title, user_id, description, start_date, end_date, active, created_at
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetChallenge(ctx context.Context, id pgtype.UUID) (Challenge, error) {
-	row := q.db.QueryRow(ctx, getChallenge, id)
+func (q *Queries) GetChallenge(ctx context.Context, id uuid.UUID) (Challenge, error) {
+	row := q.db.QueryRowContext(ctx, getChallenge, id)
 	var i Challenge
 	err := row.Scan(
 		&i.ID,
@@ -104,7 +105,7 @@ type ListChallengesParams struct {
 }
 
 func (q *Queries) ListChallenges(ctx context.Context, arg ListChallengesParams) ([]Challenge, error) {
-	rows, err := q.db.Query(ctx, listChallenges, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listChallenges, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +127,9 @@ func (q *Queries) ListChallenges(ctx context.Context, arg ListChallengesParams) 
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -142,12 +146,12 @@ RETURNING id, title, user_id, description, start_date, end_date, active, created
 `
 
 type UpdateChallengeActiveStatusParams struct {
-	ID     pgtype.UUID `json:"id"`
-	Active pgtype.Bool `json:"active"`
+	ID     uuid.UUID    `json:"id"`
+	Active sql.NullBool `json:"active"`
 }
 
 func (q *Queries) UpdateChallengeActiveStatus(ctx context.Context, arg UpdateChallengeActiveStatusParams) (Challenge, error) {
-	row := q.db.QueryRow(ctx, updateChallengeActiveStatus, arg.ID, arg.Active)
+	row := q.db.QueryRowContext(ctx, updateChallengeActiveStatus, arg.ID, arg.Active)
 	var i Challenge
 	err := row.Scan(
 		&i.ID,
@@ -172,12 +176,12 @@ RETURNING id, title, user_id, description, start_date, end_date, active, created
 `
 
 type UpdateChallengeDescriptionParams struct {
-	ID          pgtype.UUID `json:"id"`
-	Description pgtype.Text `json:"description"`
+	ID          uuid.UUID      `json:"id"`
+	Description sql.NullString `json:"description"`
 }
 
 func (q *Queries) UpdateChallengeDescription(ctx context.Context, arg UpdateChallengeDescriptionParams) (Challenge, error) {
-	row := q.db.QueryRow(ctx, updateChallengeDescription, arg.ID, arg.Description)
+	row := q.db.QueryRowContext(ctx, updateChallengeDescription, arg.ID, arg.Description)
 	var i Challenge
 	err := row.Scan(
 		&i.ID,
@@ -204,15 +208,15 @@ RETURNING id, title, user_id, description, start_date, end_date, active, created
 `
 
 type UpdateChallengeDetailsParams struct {
-	ID          pgtype.UUID `json:"id"`
-	Title       string      `json:"title"`
-	Description pgtype.Text `json:"description"`
-	EndDate     pgtype.Date `json:"end_date"`
+	ID          uuid.UUID      `json:"id"`
+	Title       string         `json:"title"`
+	Description sql.NullString `json:"description"`
+	EndDate     sql.NullTime   `json:"end_date"`
 }
 
 // This query updates multiple common fields together
 func (q *Queries) UpdateChallengeDetails(ctx context.Context, arg UpdateChallengeDetailsParams) (Challenge, error) {
-	row := q.db.QueryRow(ctx, updateChallengeDetails,
+	row := q.db.QueryRowContext(ctx, updateChallengeDetails,
 		arg.ID,
 		arg.Title,
 		arg.Description,
@@ -242,12 +246,12 @@ RETURNING id, title, user_id, description, start_date, end_date, active, created
 `
 
 type UpdateChallengeEndDateParams struct {
-	ID      pgtype.UUID `json:"id"`
-	EndDate pgtype.Date `json:"end_date"`
+	ID      uuid.UUID    `json:"id"`
+	EndDate sql.NullTime `json:"end_date"`
 }
 
 func (q *Queries) UpdateChallengeEndDate(ctx context.Context, arg UpdateChallengeEndDateParams) (Challenge, error) {
-	row := q.db.QueryRow(ctx, updateChallengeEndDate, arg.ID, arg.EndDate)
+	row := q.db.QueryRowContext(ctx, updateChallengeEndDate, arg.ID, arg.EndDate)
 	var i Challenge
 	err := row.Scan(
 		&i.ID,
@@ -272,12 +276,12 @@ RETURNING id, title, user_id, description, start_date, end_date, active, created
 `
 
 type UpdateChallengeTitleParams struct {
-	ID    pgtype.UUID `json:"id"`
-	Title string      `json:"title"`
+	ID    uuid.UUID `json:"id"`
+	Title string    `json:"title"`
 }
 
 func (q *Queries) UpdateChallengeTitle(ctx context.Context, arg UpdateChallengeTitleParams) (Challenge, error) {
-	row := q.db.QueryRow(ctx, updateChallengeTitle, arg.ID, arg.Title)
+	row := q.db.QueryRowContext(ctx, updateChallengeTitle, arg.ID, arg.Title)
 	var i Challenge
 	err := row.Scan(
 		&i.ID,

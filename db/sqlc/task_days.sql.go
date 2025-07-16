@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createTaskDay = `-- name: CreateTaskDay :one
@@ -20,8 +20,8 @@ INSERT INTO task_days (
 RETURNING id, user_id, date, count, total_duration
 `
 
-func (q *Queries) CreateTaskDay(ctx context.Context, userID pgtype.UUID) (TaskDay, error) {
-	row := q.db.QueryRow(ctx, createTaskDay, userID)
+func (q *Queries) CreateTaskDay(ctx context.Context, userID uuid.UUID) (TaskDay, error) {
+	row := q.db.QueryRowContext(ctx, createTaskDay, userID)
 	var i TaskDay
 	err := row.Scan(
 		&i.ID,
@@ -39,8 +39,8 @@ WHERE id = $1
 RETURNING id, user_id, date, count, total_duration
 `
 
-func (q *Queries) DeleteTaskDay(ctx context.Context, id pgtype.UUID) (TaskDay, error) {
-	row := q.db.QueryRow(ctx, deleteTaskDay, id)
+func (q *Queries) DeleteTaskDay(ctx context.Context, id uuid.UUID) (TaskDay, error) {
+	row := q.db.QueryRowContext(ctx, deleteTaskDay, id)
 	var i TaskDay
 	err := row.Scan(
 		&i.ID,
@@ -57,8 +57,8 @@ SELECT id, user_id, date, count, total_duration FROM task_days
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetTaskDay(ctx context.Context, id pgtype.UUID) (TaskDay, error) {
-	row := q.db.QueryRow(ctx, getTaskDay, id)
+func (q *Queries) GetTaskDay(ctx context.Context, id uuid.UUID) (TaskDay, error) {
+	row := q.db.QueryRowContext(ctx, getTaskDay, id)
 	var i TaskDay
 	err := row.Scan(
 		&i.ID,
@@ -83,7 +83,7 @@ type ListTaskDaysParams struct {
 }
 
 func (q *Queries) ListTaskDays(ctx context.Context, arg ListTaskDaysParams) ([]TaskDay, error) {
-	rows, err := q.db.Query(ctx, listTaskDays, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listTaskDays, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +101,9 @@ func (q *Queries) ListTaskDays(ctx context.Context, arg ListTaskDaysParams) ([]T
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -5,38 +5,41 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Challenge struct {
-	ID          pgtype.UUID      `json:"id"`
-	Title       string           `json:"title"`
-	UserID      pgtype.UUID      `json:"user_id"`
-	Description pgtype.Text      `json:"description"`
-	StartDate   pgtype.Date      `json:"start_date"`
-	EndDate     pgtype.Date      `json:"end_date"`
-	Active      pgtype.Bool      `json:"active"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	ID          uuid.UUID      `json:"id"`
+	Title       string         `json:"title"`
+	UserID      uuid.UUID      `json:"user_id"`
+	Description sql.NullString `json:"description"`
+	StartDate   time.Time      `json:"start_date"`
+	EndDate     sql.NullTime   `json:"end_date"`
+	Active      sql.NullBool   `json:"active"`
+	CreatedAt   time.Time      `json:"created_at"`
 }
 
 type ChallengeEntry struct {
-	ID          pgtype.UUID      `json:"id"`
-	ChallengeID pgtype.UUID      `json:"challenge_id"`
-	Date        pgtype.Date      `json:"date"`
-	Completed   pgtype.Bool      `json:"completed"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	ID          uuid.UUID    `json:"id"`
+	ChallengeID uuid.UUID    `json:"challenge_id"`
+	Date        sql.NullTime `json:"date"`
+	Completed   sql.NullBool `json:"completed"`
+	CreatedAt   sql.NullTime `json:"created_at"`
 }
 
 type CurrentChallengesView struct {
-	ID          pgtype.UUID      `json:"id"`
-	Title       string           `json:"title"`
-	UserID      pgtype.UUID      `json:"user_id"`
-	Description pgtype.Text      `json:"description"`
-	StartDate   pgtype.Date      `json:"start_date"`
-	EndDate     pgtype.Date      `json:"end_date"`
-	Active      pgtype.Bool      `json:"active"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
-	Duration    interface{}      `json:"duration"`
+	ID          uuid.UUID      `json:"id"`
+	Title       string         `json:"title"`
+	UserID      uuid.UUID      `json:"user_id"`
+	Description sql.NullString `json:"description"`
+	StartDate   time.Time      `json:"start_date"`
+	EndDate     sql.NullTime   `json:"end_date"`
+	Active      sql.NullBool   `json:"active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	Duration    interface{}    `json:"duration"`
 }
 
 type SchemaMigration struct {
@@ -45,27 +48,27 @@ type SchemaMigration struct {
 }
 
 type Task struct {
-	ID          pgtype.UUID     `json:"id"`
-	TaskDayID   pgtype.UUID     `json:"task_day_id"`
-	Title       string          `json:"title"`
-	Description pgtype.Text     `json:"description"`
-	Duration    pgtype.Interval `json:"duration"`
-	Completed   pgtype.Bool     `json:"completed"`
+	ID          uuid.UUID      `json:"id"`
+	TaskDayID   uuid.UUID      `json:"task_day_id"`
+	Title       string         `json:"title"`
+	Description sql.NullString `json:"description"`
+	Duration    int64          `json:"duration"`
+	Completed   sql.NullBool   `json:"completed"`
 }
 
 type TaskDay struct {
-	ID            pgtype.UUID     `json:"id"`
-	UserID        pgtype.UUID     `json:"user_id"`
-	Date          pgtype.Date     `json:"date"`
-	Count         pgtype.Int4     `json:"count"`
-	TotalDuration pgtype.Interval `json:"total_duration"`
+	ID            uuid.UUID     `json:"id"`
+	UserID        uuid.UUID     `json:"user_id"`
+	Date          sql.NullTime  `json:"date"`
+	Count         sql.NullInt32 `json:"count"`
+	TotalDuration sql.NullInt64 `json:"total_duration"`
 }
 
 type User struct {
-	ID        pgtype.UUID      `json:"id"`
-	Email     string           `json:"email"`
-	Name      string           `json:"name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
-	Timezone  string           `json:"timezone"`
+	ID        uuid.UUID    `json:"id"`
+	Email     string       `json:"email"`
+	Name      string       `json:"name"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+	Timezone  string       `json:"timezone"`
 }

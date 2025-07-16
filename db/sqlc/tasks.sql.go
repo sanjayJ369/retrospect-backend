@@ -7,8 +7,9 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createTask = `-- name: CreateTask :one
@@ -21,14 +22,14 @@ RETURNING id, task_day_id, title, description, duration, completed
 `
 
 type CreateTaskParams struct {
-	TaskDayID   pgtype.UUID     `json:"task_day_id"`
-	Title       string          `json:"title"`
-	Description pgtype.Text     `json:"description"`
-	Duration    pgtype.Interval `json:"duration"`
+	TaskDayID   uuid.UUID      `json:"task_day_id"`
+	Title       string         `json:"title"`
+	Description sql.NullString `json:"description"`
+	Duration    int64          `json:"duration"`
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
-	row := q.db.QueryRow(ctx, createTask,
+	row := q.db.QueryRowContext(ctx, createTask,
 		arg.TaskDayID,
 		arg.Title,
 		arg.Description,
@@ -52,8 +53,8 @@ WHERE id = $1
 RETURNING id, task_day_id, title, description, duration, completed
 `
 
-func (q *Queries) DeleteTask(ctx context.Context, id pgtype.UUID) (Task, error) {
-	row := q.db.QueryRow(ctx, deleteTask, id)
+func (q *Queries) DeleteTask(ctx context.Context, id uuid.UUID) (Task, error) {
+	row := q.db.QueryRowContext(ctx, deleteTask, id)
 	var i Task
 	err := row.Scan(
 		&i.ID,
@@ -71,8 +72,8 @@ SELECT id, task_day_id, title, description, duration, completed FROM tasks
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetTask(ctx context.Context, id pgtype.UUID) (Task, error) {
-	row := q.db.QueryRow(ctx, getTask, id)
+func (q *Queries) GetTask(ctx context.Context, id uuid.UUID) (Task, error) {
+	row := q.db.QueryRowContext(ctx, getTask, id)
 	var i Task
 	err := row.Scan(
 		&i.ID,
@@ -98,7 +99,7 @@ type ListTasksParams struct {
 }
 
 func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, error) {
-	rows, err := q.db.Query(ctx, listTasks, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listTasks, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +119,9 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -134,15 +138,15 @@ WHERE id = $1
 `
 
 type UpdateTaskParams struct {
-	ID          pgtype.UUID     `json:"id"`
-	Title       string          `json:"title"`
-	Description pgtype.Text     `json:"description"`
-	Duration    pgtype.Interval `json:"duration"`
-	Completed   pgtype.Bool     `json:"completed"`
+	ID          uuid.UUID      `json:"id"`
+	Title       string         `json:"title"`
+	Description sql.NullString `json:"description"`
+	Duration    int64          `json:"duration"`
+	Completed   sql.NullBool   `json:"completed"`
 }
 
 func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) error {
-	_, err := q.db.Exec(ctx, updateTask,
+	_, err := q.db.ExecContext(ctx, updateTask,
 		arg.ID,
 		arg.Title,
 		arg.Description,

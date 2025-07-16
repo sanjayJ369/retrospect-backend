@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const listChallengeEntriesByChallengeId = `-- name: ListChallengeEntriesByChallengeId :many
@@ -20,13 +20,13 @@ OFFSET $3
 `
 
 type ListChallengeEntriesByChallengeIdParams struct {
-	ChallengeID pgtype.UUID `json:"challenge_id"`
-	Limit       int32       `json:"limit"`
-	Offset      int32       `json:"offset"`
+	ChallengeID uuid.UUID `json:"challenge_id"`
+	Limit       int32     `json:"limit"`
+	Offset      int32     `json:"offset"`
 }
 
 func (q *Queries) ListChallengeEntriesByChallengeId(ctx context.Context, arg ListChallengeEntriesByChallengeIdParams) ([]ChallengeEntry, error) {
-	rows, err := q.db.Query(ctx, listChallengeEntriesByChallengeId, arg.ChallengeID, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listChallengeEntriesByChallengeId, arg.ChallengeID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +45,9 @@ func (q *Queries) ListChallengeEntriesByChallengeId(ctx context.Context, arg Lis
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -60,13 +63,13 @@ OFFSET $3
 `
 
 type ListChallengesByUserParams struct {
-	UserID pgtype.UUID `json:"user_id"`
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+	Offset int32     `json:"offset"`
 }
 
 func (q *Queries) ListChallengesByUser(ctx context.Context, arg ListChallengesByUserParams) ([]Challenge, error) {
-	rows, err := q.db.Query(ctx, listChallengesByUser, arg.UserID, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listChallengesByUser, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +90,9 @@ func (q *Queries) ListChallengesByUser(ctx context.Context, arg ListChallengesBy
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
