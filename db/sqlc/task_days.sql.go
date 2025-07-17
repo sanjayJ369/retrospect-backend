@@ -17,7 +17,7 @@ INSERT INTO task_days (
 ) VALUES (
   $1
 )
-RETURNING id, user_id, date, count, total_duration
+RETURNING id, user_id, date, count, total_duration, completed_duration
 `
 
 func (q *Queries) CreateTaskDay(ctx context.Context, userID pgtype.UUID) (TaskDay, error) {
@@ -29,6 +29,7 @@ func (q *Queries) CreateTaskDay(ctx context.Context, userID pgtype.UUID) (TaskDa
 		&i.Date,
 		&i.Count,
 		&i.TotalDuration,
+		&i.CompletedDuration,
 	)
 	return i, err
 }
@@ -36,7 +37,7 @@ func (q *Queries) CreateTaskDay(ctx context.Context, userID pgtype.UUID) (TaskDa
 const deleteTaskDay = `-- name: DeleteTaskDay :one
 DELETE FROM task_days
 WHERE id = $1
-RETURNING id, user_id, date, count, total_duration
+RETURNING id, user_id, date, count, total_duration, completed_duration
 `
 
 func (q *Queries) DeleteTaskDay(ctx context.Context, id pgtype.UUID) (TaskDay, error) {
@@ -48,12 +49,13 @@ func (q *Queries) DeleteTaskDay(ctx context.Context, id pgtype.UUID) (TaskDay, e
 		&i.Date,
 		&i.Count,
 		&i.TotalDuration,
+		&i.CompletedDuration,
 	)
 	return i, err
 }
 
 const getTaskDay = `-- name: GetTaskDay :one
-SELECT id, user_id, date, count, total_duration FROM task_days
+SELECT id, user_id, date, count, total_duration, completed_duration FROM task_days
 WHERE id = $1 LIMIT 1
 `
 
@@ -66,12 +68,13 @@ func (q *Queries) GetTaskDay(ctx context.Context, id pgtype.UUID) (TaskDay, erro
 		&i.Date,
 		&i.Count,
 		&i.TotalDuration,
+		&i.CompletedDuration,
 	)
 	return i, err
 }
 
 const listTaskDays = `-- name: ListTaskDays :many
-SELECT id, user_id, date, count, total_duration FROM task_days
+SELECT id, user_id, date, count, total_duration, completed_duration FROM task_days
 ORDER BY task_days.date
 LIMIT $1
 OFFSET $2
@@ -97,6 +100,7 @@ func (q *Queries) ListTaskDays(ctx context.Context, arg ListTaskDaysParams) ([]T
 			&i.Date,
 			&i.Count,
 			&i.TotalDuration,
+			&i.CompletedDuration,
 		); err != nil {
 			return nil, err
 		}

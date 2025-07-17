@@ -12,7 +12,7 @@ import (
 )
 
 const listTaskDaysByUserId = `-- name: ListTaskDaysByUserId :many
-SELECT id, user_id, date, count, total_duration FROM task_days
+SELECT id, user_id, date, count, total_duration, completed_duration FROM task_days
 WHERE user_id = $1
 ORDER BY date
 LIMIT $2
@@ -40,6 +40,7 @@ func (q *Queries) ListTaskDaysByUserId(ctx context.Context, arg ListTaskDaysByUs
 			&i.Date,
 			&i.Count,
 			&i.TotalDuration,
+			&i.CompletedDuration,
 		); err != nil {
 			return nil, err
 		}

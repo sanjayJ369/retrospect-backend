@@ -14,25 +14,3 @@ WHERE timezone = $1
 ON CONFLICT (user_id, date) DO NOTHING;
 
 
--- name: UpdateTaskDayTotalsForUsersInTimezone :exec
--- For a given timezone, finds all task_days from "yesterday" and updates their totals.
--- This is much more efficient than fetching IDs into Go and updating one by one.
-WITH daily_summary AS (
-  SELECT
-    td.id as task_day_id,
-    SUM(t.duration) as total_duration,
-    COUNT(t.id) as task_count
-  FROM tasks t
-  JOIN task_days td ON t.task_day_id = td.id
-  JOIN users u ON td.user_id = u.id
-  WHERE
-    u.timezone = $1
-    AND td.date = (NOW() AT TIME ZONE $1)::date - INTERVAL '1 day' 
-  GROUP BY td.id
-)
-UPDATE task_days
-SET
-  total_duration = daily_summary.total_duration,
-  count = daily_summary.task_count
-FROM daily_summary
-WHERE task_days.id = daily_summary.task_day_id;

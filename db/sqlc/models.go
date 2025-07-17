@@ -54,11 +54,12 @@ type Task struct {
 }
 
 type TaskDay struct {
-	ID            pgtype.UUID     `json:"id"`
-	UserID        pgtype.UUID     `json:"user_id"`
-	Date          pgtype.Date     `json:"date"`
-	Count         pgtype.Int4     `json:"count"`
-	TotalDuration pgtype.Interval `json:"total_duration"`
+	ID                pgtype.UUID     `json:"id"`
+	UserID            pgtype.UUID     `json:"user_id"`
+	Date              pgtype.Date     `json:"date"`
+	Count             pgtype.Int4     `json:"count"`
+	TotalDuration     pgtype.Interval `json:"total_duration"`
+	CompletedDuration pgtype.Interval `json:"completed_duration"`
 }
 
 type User struct {
