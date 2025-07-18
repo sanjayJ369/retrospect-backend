@@ -109,7 +109,7 @@ func (q *Queries) ListChallenges(ctx context.Context, arg ListChallengesParams) 
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Challenge
+	items := []Challenge{}
 	for rows.Next() {
 		var i Challenge
 		if err := rows.Scan(

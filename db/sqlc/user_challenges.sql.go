@@ -31,7 +31,7 @@ func (q *Queries) ListChallengeEntriesByChallengeId(ctx context.Context, arg Lis
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ChallengeEntry
+	items := []ChallengeEntry{}
 	for rows.Next() {
 		var i ChallengeEntry
 		if err := rows.Scan(
@@ -71,7 +71,7 @@ func (q *Queries) ListChallengesByUser(ctx context.Context, arg ListChallengesBy
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Challenge
+	items := []Challenge{}
 	for rows.Next() {
 		var i Challenge
 		if err := rows.Scan(

@@ -3,8 +3,10 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,4 +80,50 @@ func TestListTaskDaysEmpty(t *testing.T) {
 	taskDays, err := testQueries.ListTaskDays(context.Background(), arg)
 	require.NoError(t, err)
 	require.Empty(t, taskDays)
+}
+
+func TestGetTaskDayByDateAndUser(t *testing.T) {
+	// Create a task day
+	taskDay1 := createRandomTaskDay(t)
+
+	// Get the task day by date and user_id
+	arg := GetTaskDayByDateAndUserParams{
+		Date:   taskDay1.Date,
+		UserID: taskDay1.UserID,
+	}
+	taskDay2, err := testQueries.GetTaskDayByDateAndUser(context.Background(), arg)
+	require.NoError(t, err)
+	require.Equal(t, taskDay1, taskDay2)
+}
+
+func TestGetTaskDayByDateAndUserNotFound(t *testing.T) {
+	user := createRandomUser(t)
+
+	// Try to get a task day that doesn't exist
+	arg := GetTaskDayByDateAndUserParams{
+		Date:   pgtype.Date{Time: time.Now().AddDate(0, 0, -30), Valid: true}, // 30 days ago
+		UserID: user.ID,
+	}
+	taskDay, err := testQueries.GetTaskDayByDateAndUser(context.Background(), arg)
+	require.Error(t, err)
+	require.Empty(t, taskDay)
+	require.Equal(t, err, pgx.ErrNoRows)
+}
+
+func TestGetTaskDayByDateAndUserDifferentUser(t *testing.T) {
+	// Create a task day for user1
+	taskDay1 := createRandomTaskDay(t)
+
+	// Create a different user
+	user2 := createRandomUser(t)
+
+	// Try to get the task day with user2's ID (should not find it)
+	arg := GetTaskDayByDateAndUserParams{
+		Date:   taskDay1.Date,
+		UserID: user2.ID,
+	}
+	taskDay, err := testQueries.GetTaskDayByDateAndUser(context.Background(), arg)
+	require.Error(t, err)
+	require.Empty(t, taskDay)
+	require.Equal(t, err, pgx.ErrNoRows)
 }

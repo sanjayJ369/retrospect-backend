@@ -103,7 +103,7 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Task
+	items := []Task{}
 	for rows.Next() {
 		var i Task
 		if err := rows.Scan(

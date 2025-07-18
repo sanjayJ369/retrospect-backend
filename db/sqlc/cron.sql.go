@@ -39,7 +39,7 @@ func (q *Queries) GetTimezonesWhereDayIsStarting(ctx context.Context) ([]string,
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	items := []string{}
 	for rows.Next() {
 		var timezone string
 		if err := rows.Scan(&timezone); err != nil {

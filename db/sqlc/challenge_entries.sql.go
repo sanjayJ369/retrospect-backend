@@ -88,7 +88,7 @@ func (q *Queries) ListChallengeEntries(ctx context.Context, arg ListChallengeEnt
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ChallengeEntry
+	items := []ChallengeEntry{}
 	for rows.Next() {
 		var i ChallengeEntry
 		if err := rows.Scan(

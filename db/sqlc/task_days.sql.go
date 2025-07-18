@@ -73,6 +73,32 @@ func (q *Queries) GetTaskDay(ctx context.Context, id pgtype.UUID) (TaskDay, erro
 	return i, err
 }
 
+const getTaskDayByDateAndUser = `-- name: GetTaskDayByDateAndUser :one
+SELECT id, user_id, date, count, total_duration, completed_duration FROM task_days 
+WHERE date = $1 
+AND user_id = $2 
+LIMIT 1
+`
+
+type GetTaskDayByDateAndUserParams struct {
+	Date   pgtype.Date `json:"date"`
+	UserID pgtype.UUID `json:"user_id"`
+}
+
+func (q *Queries) GetTaskDayByDateAndUser(ctx context.Context, arg GetTaskDayByDateAndUserParams) (TaskDay, error) {
+	row := q.db.QueryRow(ctx, getTaskDayByDateAndUser, arg.Date, arg.UserID)
+	var i TaskDay
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Date,
+		&i.Count,
+		&i.TotalDuration,
+		&i.CompletedDuration,
+	)
+	return i, err
+}
+
 const listTaskDays = `-- name: ListTaskDays :many
 SELECT id, user_id, date, count, total_duration, completed_duration FROM task_days
 ORDER BY task_days.date
@@ -91,7 +117,7 @@ func (q *Queries) ListTaskDays(ctx context.Context, arg ListTaskDaysParams) ([]T
 		return nil, err
 	}
 	defer rows.Close()
-	var items []TaskDay
+	items := []TaskDay{}
 	for rows.Next() {
 		var i TaskDay
 		if err := rows.Scan(

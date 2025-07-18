@@ -31,7 +31,7 @@ func (q *Queries) ListTaskDaysByUserId(ctx context.Context, arg ListTaskDaysByUs
 		return nil, err
 	}
 	defer rows.Close()
-	var items []TaskDay
+	items := []TaskDay{}
 	for rows.Next() {
 		var i TaskDay
 		if err := rows.Scan(
@@ -63,7 +63,7 @@ func (q *Queries) ListTasksByTaskDayId(ctx context.Context, taskDayID pgtype.UUI
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Task
+	items := []Task{}
 	for rows.Next() {
 		var i Task
 		if err := rows.Scan(
