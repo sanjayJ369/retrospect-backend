@@ -8,17 +8,17 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
-)
-
-const (
-	driverName   = "postgres"
-	driverSource = "postgresql://root:root@localhost:5432/retrospect?sslmode=disable"
+	"github.com/sanjayj369/retrospect-backend/util"
 )
 
 var testQueries *Queries
 
 func TestMain(m *testing.M) {
-	conn, err := pgx.Connect(context.Background(), driverSource)
+	config, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatal("cannot load config, err:", err)
+	}
+	conn, err := pgx.Connect(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("unable to connect to db:", err)
 	}

@@ -7,16 +7,15 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/sanjayj369/retrospect-backend/api"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
-)
-
-const (
-	driverName   = "postgres"
-	driverSource = "postgresql://root:root@localhost:5432/retrospect?sslmode=disable"
-	address      = "0.0.0.0:8080"
+	"github.com/sanjayj369/retrospect-backend/util"
 )
 
 func main() {
-	conn, err := pgx.Connect(context.Background(), driverSource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load config, err:", err)
+	}
+	conn, err := pgx.Connect(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("unable to connect to db:", err)
 	}
@@ -24,7 +23,7 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(address)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server, err:", err)
 	}
