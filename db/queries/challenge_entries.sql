@@ -16,10 +16,11 @@ ORDER BY created_at
 LIMIT $1
 OFFSET $2;
 
--- name: UpdateChallengeEntry :exec
+-- name: UpdateChallengeEntry :one
 UPDATE challenge_entries
   set completed = $2
-WHERE id = $1;
+WHERE id = $1
+RETURNING *;;
 
 -- name: DeleteChallengeEntry :one
 DELETE FROM challenge_entries

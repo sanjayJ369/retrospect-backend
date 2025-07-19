@@ -81,7 +81,7 @@ func TestUpdateChallengeEntry(t *testing.T) {
 		},
 	}
 
-	err := testQueries.UpdateChallengeEntry(context.Background(), arg)
+	_, err := testQueries.UpdateChallengeEntry(context.Background(), arg)
 	require.NoError(t, err)
 
 	challengeEntry2, err := testQueries.GetChallengeEntry(context.Background(), challengeEntry1.ID)
@@ -103,7 +103,7 @@ func TestUpdateChallengeEntryToNotCompleted(t *testing.T) {
 		},
 	}
 
-	err := testQueries.UpdateChallengeEntry(context.Background(), arg)
+	_, err := testQueries.UpdateChallengeEntry(context.Background(), arg)
 	require.NoError(t, err)
 
 	// Verify the update
@@ -124,7 +124,7 @@ func TestUpdateChallengeEntryToNull(t *testing.T) {
 		},
 	}
 
-	err := testQueries.UpdateChallengeEntry(context.Background(), arg)
+	_, err := testQueries.UpdateChallengeEntry(context.Background(), arg)
 	require.NoError(t, err)
 
 	challengeEntry2, err := testQueries.GetChallengeEntry(context.Background(), challengeEntry1.ID)

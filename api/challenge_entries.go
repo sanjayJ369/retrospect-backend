@@ -40,11 +40,11 @@ func (server *Server) updateChallengeEntries(ctx *gin.Context) {
 		Completed: pgtype.Bool{Bool: req.Complete, Valid: true},
 	}
 
-	err = server.store.UpdateChallengeEntry(ctx, arg)
+	res, err := server.store.UpdateChallengeEntry(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": "Challenge entry updated successfully"})
+	ctx.JSON(http.StatusOK, res)
 }

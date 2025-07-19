@@ -108,10 +108,11 @@ func (q *Queries) ListChallengeEntries(ctx context.Context, arg ListChallengeEnt
 	return items, nil
 }
 
-const updateChallengeEntry = `-- name: UpdateChallengeEntry :exec
+const updateChallengeEntry = `-- name: UpdateChallengeEntry :one
 UPDATE challenge_entries
   set completed = $2
 WHERE id = $1
+RETURNING id, challenge_id, date, completed, created_at
 `
 
 type UpdateChallengeEntryParams struct {
@@ -119,7 +120,15 @@ type UpdateChallengeEntryParams struct {
 	Completed pgtype.Bool `json:"completed"`
 }
 
-func (q *Queries) UpdateChallengeEntry(ctx context.Context, arg UpdateChallengeEntryParams) error {
-	_, err := q.db.Exec(ctx, updateChallengeEntry, arg.ID, arg.Completed)
-	return err
+func (q *Queries) UpdateChallengeEntry(ctx context.Context, arg UpdateChallengeEntryParams) (ChallengeEntry, error) {
+	row := q.db.QueryRow(ctx, updateChallengeEntry, arg.ID, arg.Completed)
+	var i ChallengeEntry
+	err := row.Scan(
+		&i.ID,
+		&i.ChallengeID,
+		&i.Date,
+		&i.Completed,
+		&i.CreatedAt,
+	)
+	return i, err
 }

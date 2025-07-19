@@ -186,7 +186,7 @@ func TestListTasksByTaskDayIdWithDifferentTaskStates(t *testing.T) {
 		Duration:    task1.Duration,
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateArg)
+	_, err = testQueries.UpdateTask(context.Background(), updateArg)
 	require.NoError(t, err)
 
 	// Create an incomplete task

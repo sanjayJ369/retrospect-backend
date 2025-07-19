@@ -16,13 +16,14 @@ ORDER BY title
 LIMIT $1
 OFFSET $2;
 
--- name: UpdateTask :exec
+-- name: UpdateTask :one
 UPDATE tasks
   set title = $2,
   description = $3, 
   duration = $4, 
   completed = $5
-WHERE id = $1;
+WHERE id = $1
+RETURNING *;;
 
 -- name: DeleteTask :one
 DELETE FROM tasks

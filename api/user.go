@@ -59,7 +59,7 @@ func (s *Server) getUser(ctx *gin.Context) {
 	user, err := s.store.GetUser(ctx, pgtype.UUID{Bytes: userUUIDBytes, Valid: true})
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

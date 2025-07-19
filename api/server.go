@@ -21,12 +21,19 @@ func NewServer(store *db.Store) *Server {
 	// challenge routes
 	router.POST("/challenges", server.createChallenge)
 	router.GET("/challenges/:id", server.getChallenge) // TODO: update to include challenge entries
-	router.PUT("/challenges/:id", server.updateChallenge)
+	router.PATCH("/challenges/:id", server.updateChallenge)
 	router.DELETE("/challenges/:id", server.deleteChallenge)
 	router.GET("/challenges", server.listChallenges)
 
 	// challenge entries
 	router.PUT("/challenge-entries/:id", server.updateChallengeEntries)
+
+	// tasks
+	router.POST("/tasks", server.createTask)
+	router.GET("/tasks/:id", server.getTask)
+	router.PATCH("/tasks/:id", server.updateTask)
+	router.DELETE("/tasks/:id", server.deleteTask)
+	router.GET("/tasks", server.listTasks)
 
 	server.router = router
 	return server

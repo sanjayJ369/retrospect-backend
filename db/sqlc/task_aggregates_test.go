@@ -58,7 +58,7 @@ func TestTaskDayAggregatesOnTaskInsertion(t *testing.T) {
 		Duration:    task2.Duration,
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateArg)
+	_, err = testQueries.UpdateTask(context.Background(), updateArg)
 	require.NoError(t, err)
 
 	// Verify aggregates after second task insertion and completion
@@ -104,7 +104,7 @@ func TestTaskDayAggregatesOnTaskUpdate(t *testing.T) {
 		Duration:    task.Duration,
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateArg1)
+	_, err = testQueries.UpdateTask(context.Background(), updateArg1)
 	require.NoError(t, err)
 
 	// Verify completed_duration is updated
@@ -123,7 +123,7 @@ func TestTaskDayAggregatesOnTaskUpdate(t *testing.T) {
 		Duration:    pgtype.Interval{Microseconds: int64(newDuration), Valid: true},
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateArg2)
+	_, err = testQueries.UpdateTask(context.Background(), updateArg2)
 	require.NoError(t, err)
 
 	// Verify both total and completed durations are updated
@@ -141,7 +141,7 @@ func TestTaskDayAggregatesOnTaskUpdate(t *testing.T) {
 		Duration:    pgtype.Interval{Microseconds: int64(newDuration), Valid: true},
 		Completed:   pgtype.Bool{Bool: false, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateArg3)
+	_, err = testQueries.UpdateTask(context.Background(), updateArg3)
 	require.NoError(t, err)
 
 	// Verify completed_duration is reset to 0
@@ -193,7 +193,7 @@ func TestTaskDayAggregatesOnTaskDeletion(t *testing.T) {
 		Duration:    task2.Duration,
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateArg)
+	_, err = testQueries.UpdateTask(context.Background(), updateArg)
 	require.NoError(t, err)
 
 	// Task 3: Completed
@@ -214,7 +214,7 @@ func TestTaskDayAggregatesOnTaskDeletion(t *testing.T) {
 		Duration:    task3.Duration,
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateArg3)
+	_, err = testQueries.UpdateTask(context.Background(), updateArg3)
 	require.NoError(t, err)
 
 	// Verify initial aggregates
@@ -304,7 +304,7 @@ func TestTaskDayAggregatesComplexScenario(t *testing.T) {
 			Duration:    tasks[i].Duration,
 			Completed:   pgtype.Bool{Bool: true, Valid: true},
 		}
-		err = testQueries.UpdateTask(context.Background(), updateArg)
+		_, err = testQueries.UpdateTask(context.Background(), updateArg)
 		require.NoError(t, err)
 		completedDuration += durations[i]
 	}
@@ -326,7 +326,7 @@ func TestTaskDayAggregatesComplexScenario(t *testing.T) {
 		Duration:    pgtype.Interval{Microseconds: int64(newDuration), Valid: true},
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
-	err = testQueries.UpdateTask(context.Background(), updateDurationArg)
+	_, err = testQueries.UpdateTask(context.Background(), updateDurationArg)
 	require.NoError(t, err)
 
 	// Verify aggregates after duration change

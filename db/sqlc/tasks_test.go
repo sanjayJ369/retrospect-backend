@@ -72,7 +72,7 @@ func TestUpdateTask(t *testing.T) {
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
 
-	err := testQueries.UpdateTask(context.Background(), arg)
+	_, err := testQueries.UpdateTask(context.Background(), arg)
 	require.NoError(t, err)
 
 	// Verify the task was updated
@@ -132,7 +132,7 @@ func TestUpdateTaskCompleted(t *testing.T) {
 		Completed:   pgtype.Bool{Bool: true, Valid: true},
 	}
 
-	err := testQueries.UpdateTask(context.Background(), arg)
+	_, err := testQueries.UpdateTask(context.Background(), arg)
 	require.NoError(t, err)
 
 	// Verify only completed status changed

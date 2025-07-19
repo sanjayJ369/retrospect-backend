@@ -124,13 +124,14 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 	return items, nil
 }
 
-const updateTask = `-- name: UpdateTask :exec
+const updateTask = `-- name: UpdateTask :one
 UPDATE tasks
   set title = $2,
   description = $3, 
   duration = $4, 
   completed = $5
 WHERE id = $1
+RETURNING id, task_day_id, title, description, duration, completed
 `
 
 type UpdateTaskParams struct {
@@ -141,13 +142,22 @@ type UpdateTaskParams struct {
 	Completed   pgtype.Bool     `json:"completed"`
 }
 
-func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) error {
-	_, err := q.db.Exec(ctx, updateTask,
+func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error) {
+	row := q.db.QueryRow(ctx, updateTask,
 		arg.ID,
 		arg.Title,
 		arg.Description,
 		arg.Duration,
 		arg.Completed,
 	)
-	return err
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.TaskDayID,
+		&i.Title,
+		&i.Description,
+		&i.Duration,
+		&i.Completed,
+	)
+	return i, err
 }
