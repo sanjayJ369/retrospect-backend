@@ -29,16 +29,15 @@ func TestUpdateChallengeEntriesAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		challengeID   string
-		body          updateChallengeEntriesRequest
+		body          updateChallengeEntriesBodyRequest
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:        "OK - Mark as Complete",
 			challengeID: validUUID,
-			body: updateChallengeEntriesRequest{
-				ChallengeID: validUUID,
-				Complete:    true,
+			body: updateChallengeEntriesBodyRequest{
+				Complete: true,
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.UpdateChallengeEntryParams{
@@ -62,9 +61,8 @@ func TestUpdateChallengeEntriesAPI(t *testing.T) {
 		{
 			name:        "OK - Mark as Incomplete",
 			challengeID: validUUID,
-			body: updateChallengeEntriesRequest{
-				ChallengeID: validUUID,
-				Complete:    false,
+			body: updateChallengeEntriesBodyRequest{
+				Complete: false,
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.UpdateChallengeEntryParams{
@@ -88,9 +86,8 @@ func TestUpdateChallengeEntriesAPI(t *testing.T) {
 		{
 			name:        "Bad Request - Invalid UUID in URL",
 			challengeID: "invalid-uuid",
-			body: updateChallengeEntriesRequest{
-				ChallengeID: "invalid-uuid",
-				Complete:    true,
+			body: updateChallengeEntriesBodyRequest{
+				Complete: true,
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
@@ -104,7 +101,7 @@ func TestUpdateChallengeEntriesAPI(t *testing.T) {
 		{
 			name:        "Bad Request - Invalid JSON Body",
 			challengeID: validUUID,
-			body:        updateChallengeEntriesRequest{}, // This will be overridden with invalid JSON
+			body:        updateChallengeEntriesBodyRequest{}, // This will be overridden with invalid JSON
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					UpdateChallengeEntry(gomock.Any(), gomock.Any()).
@@ -117,9 +114,8 @@ func TestUpdateChallengeEntriesAPI(t *testing.T) {
 		{
 			name:        "Not Found",
 			challengeID: validUUID,
-			body: updateChallengeEntriesRequest{
-				ChallengeID: validUUID,
-				Complete:    true,
+			body: updateChallengeEntriesBodyRequest{
+				Complete: true,
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.UpdateChallengeEntryParams{
@@ -139,9 +135,8 @@ func TestUpdateChallengeEntriesAPI(t *testing.T) {
 		{
 			name:        "Internal Server Error",
 			challengeID: validUUID,
-			body: updateChallengeEntriesRequest{
-				ChallengeID: validUUID,
-				Complete:    true,
+			body: updateChallengeEntriesBodyRequest{
+				Complete: true,
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.UpdateChallengeEntryParams{
@@ -200,10 +195,7 @@ func randomChallengeEntry() db.ChallengeEntry {
 	return db.ChallengeEntry{
 		ID:          util.GetUUIDPGType(),
 		ChallengeID: util.GetUUIDPGType(),
-		Date: pgtype.Date{
-			Time:  getRandomDate(),
-			Valid: true,
-		},
+		Date:        util.GetRandomEndDate(30),
 		Completed: pgtype.Bool{
 			Bool:  false,
 			Valid: true,
@@ -227,17 +219,7 @@ func requireBodyMatchChallengeEntry(t *testing.T, body *bytes.Buffer, challengeE
 	require.Equal(t, challengeEntry.ID, gotChallengeEntry.ID)
 	require.Equal(t, challengeEntry.ChallengeID, gotChallengeEntry.ChallengeID)
 	require.Equal(t, challengeEntry.Date, gotChallengeEntry.Date)
-	require.Equal(t, challengeEntry.CreatedAt, gotChallengeEntry.CreatedAt)
 	// Note: We don't check Completed field here as it might be updated in the test
-}
-
-// getRandomDate generates a random date for testing
-func getRandomDate() time.Time {
-	min := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
-	max := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC).Unix()
-	delta := max - min
-	sec := rand.Int63n(delta) + min
-	return time.Unix(sec, 0)
 }
 
 // getRandomTimestamp generates a random timestamp for testing

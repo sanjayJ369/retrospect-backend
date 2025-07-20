@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/sanjayj369/retrospect-backend/util"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +20,7 @@ func TestListChallengesByUser(t *testing.T) {
 			Title:       "Test Challenge " + string(rune('A'+i)),
 			UserID:      user.ID,
 			Description: pgtype.Text{String: "Test description", Valid: true},
-			EndDate:     getRandomEndDate(t, 30),
+			EndDate:     util.GetRandomEndDate(30),
 		}
 		challenge, err := testQueries.CreateChallenge(context.Background(), arg)
 		require.NoError(t, err)
@@ -69,7 +70,7 @@ func TestListChallengesByUserWithPagination(t *testing.T) {
 			Title:       "Challenge " + string(rune('A'+i)),
 			UserID:      user.ID,
 			Description: pgtype.Text{String: "Description", Valid: true},
-			EndDate:     getRandomEndDate(t, 30),
+			EndDate:     util.GetRandomEndDate(30),
 		}
 		_, err := testQueries.CreateChallenge(context.Background(), arg)
 		require.NoError(t, err)
@@ -222,7 +223,7 @@ func TestListChallengesByUserOrdering(t *testing.T) {
 			Title:       "Challenge " + string(rune('A'+i)),
 			UserID:      user.ID,
 			Description: pgtype.Text{String: "Description", Valid: true},
-			EndDate:     getRandomEndDate(t, 30),
+			EndDate:     util.GetRandomEndDate(30),
 		}
 		_, err := testQueries.CreateChallenge(context.Background(), arg)
 		require.NoError(t, err)

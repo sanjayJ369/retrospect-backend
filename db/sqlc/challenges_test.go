@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/sanjayj369/retrospect-backend/util"
@@ -22,7 +21,7 @@ func createRandomChallenge(t testing.TB) Challenge {
 			String: util.GetRandomString(100),
 			Valid:  true,
 		},
-		EndDate: getRandomEndDate(t, 100),
+		EndDate: util.GetRandomEndDate(30),
 	}
 	challenge, err := testQueries.CreateChallenge(context.Background(), arg)
 	require.NoError(t, err)
@@ -108,7 +107,7 @@ func TestUpdateChallengeDetails(t *testing.T) {
 			String: util.GetRandomString(100),
 			Valid:  true,
 		},
-		EndDate: getRandomEndDate(t, 100),
+		EndDate: util.GetRandomEndDate(30),
 	}
 	challenge1, err := testQueries.UpdateChallengeDetails(context.Background(), arg)
 	require.NoError(t, err)
@@ -121,7 +120,7 @@ func TestUpdateChallengeEndDate(t *testing.T) {
 	challenge := createRandomChallenge(t)
 	arg := UpdateChallengeEndDateParams{
 		ID:      challenge.ID,
-		EndDate: getRandomEndDate(t, 100),
+		EndDate: util.GetRandomEndDate(30),
 	}
 	challenge1, err := testQueries.UpdateChallengeEndDate(context.Background(), arg)
 	require.NoError(t, err)
@@ -138,28 +137,4 @@ func TestUpdateChallengeTitle(t *testing.T) {
 	challenge1, err := testQueries.UpdateChallengeTitle(context.Background(), arg)
 	require.NoError(t, err)
 	require.Equal(t, arg.Title, challenge1.Title)
-}
-
-// getRandomEndDate returns a random date between current day
-// and current day + max or returns nulltime randomly
-func getRandomEndDate(t testing.TB, max int) pgtype.Date {
-	t.Helper()
-	p := util.GetRandomInt(0, 101)
-	alpha := 30
-	if int(p) > alpha {
-		nowUTC := time.Now().UTC()
-		todayUTC := nowUTC.Truncate(24 * time.Hour)
-		daysToAdd := util.GetRandomInt(1, max)
-		endDate := todayUTC.AddDate(0, 0, int(daysToAdd))
-
-		return pgtype.Date{
-			Time:  endDate,
-			Valid: true,
-		}
-	}
-
-	// Return a NULL date
-	return pgtype.Date{
-		Valid: false,
-	}
 }

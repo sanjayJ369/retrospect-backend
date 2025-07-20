@@ -51,3 +51,27 @@ func GetRandomTimezone() string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return timezones[r.Intn(len(timezones))]
 }
+
+// getRandomEndDate returns a random date between current day
+// and current day + max or returns nulltime randomly
+func GetRandomEndDate(max int) pgtype.Date {
+
+	p := GetRandomInt(0, 101)
+	alpha := 30
+	if int(p) > alpha {
+		nowUTC := time.Now().UTC()
+		todayUTC := nowUTC.Truncate(24 * time.Hour)
+		daysToAdd := GetRandomInt(1, max)
+		endDate := todayUTC.AddDate(0, 0, int(daysToAdd))
+
+		return pgtype.Date{
+			Time:  endDate,
+			Valid: true,
+		}
+	}
+
+	// Return a NULL date
+	return pgtype.Date{
+		Valid: false,
+	}
+}

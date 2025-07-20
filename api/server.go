@@ -23,7 +23,7 @@ func NewServer(store db.Store) *Server {
 	router.GET("/challenges/:id", server.getChallenge) // TODO: update to include challenge entries
 	router.PATCH("/challenges/:id", server.updateChallenge)
 	router.DELETE("/challenges/:id", server.deleteChallenge)
-	router.GET("/challenges", server.listChallenges)
+	router.GET("/users/:id/challenges", server.listChallenges)
 
 	// challenge entries
 	router.PUT("/challenge-entries/:id", server.updateChallengeEntries)

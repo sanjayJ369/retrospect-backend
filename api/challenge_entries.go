@@ -9,20 +9,23 @@ import (
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
 )
 
-type updateChallengeEntriesRequest struct {
+type updateChallengeEntriesUriRequest struct {
 	ChallengeID string `uri:"id" binding:"required,uuid"`
-	Complete    bool   `json:"complete" binding:"required"`
+}
+
+type updateChallengeEntriesBodyRequest struct {
+	Complete bool `json:"complete"`
 }
 
 func (server *Server) updateChallengeEntries(ctx *gin.Context) {
-	var req updateChallengeEntriesRequest
-	err := ctx.ShouldBindUri(&req)
+	var uriReq updateChallengeEntriesUriRequest
+	err := ctx.ShouldBindUri(&uriReq)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	parseUUID, err := uuid.Parse(req.ChallengeID)
+	parseUUID, err := uuid.Parse(uriReq.ChallengeID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -30,7 +33,8 @@ func (server *Server) updateChallengeEntries(ctx *gin.Context) {
 
 	var challengeID [16]byte = parseUUID
 
-	err = ctx.ShouldBindJSON(&req)
+	var bodyReq updateChallengeEntriesBodyRequest
+	err = ctx.ShouldBindJSON(&bodyReq)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -38,7 +42,7 @@ func (server *Server) updateChallengeEntries(ctx *gin.Context) {
 
 	arg := db.UpdateChallengeEntryParams{
 		ID:        pgtype.UUID{Bytes: challengeID, Valid: true},
-		Completed: pgtype.Bool{Bool: req.Complete, Valid: true},
+		Completed: pgtype.Bool{Bool: bodyReq.Complete, Valid: true},
 	}
 
 	res, err := server.store.UpdateChallengeEntry(ctx, arg)
