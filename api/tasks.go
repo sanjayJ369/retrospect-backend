@@ -78,40 +78,44 @@ func (s *Server) getTask(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, task)
 }
 
-type updateTaskRequest struct {
-	ID          string `uri:"id" binding:"required,uuid"`
+type updateTaskUriRequest struct {
+	ID string `uri:"id" binding:"required,uuid"`
+}
+
+type updateTaskBodyRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
-	Completed   bool   `json:"completed" binding:"required"`
+	Completed   bool   `json:"completed"`
 	Duration    int    `json:"duration" binding:"required"`
 }
 
 func (s *Server) updateTask(ctx *gin.Context) {
-	var req updateTaskRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	var uriReq updateTaskUriRequest
+	if err := ctx.ShouldBindUri(&uriReq); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	var bodyReq updateTaskBodyRequest
+	if err := ctx.ShouldBindJSON(&bodyReq); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	parseUUID, err := uuid.Parse(req.ID)
+	parseUUID, err := uuid.Parse(uriReq.ID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	taskID := pgtype.UUID{Bytes: parseUUID, Valid: true}
-	description := pgtype.Text{String: req.Description, Valid: req.Description != ""}
-	duration := util.MinutesToPGInterval(req.Duration)
-	completed := pgtype.Bool{Bool: req.Completed, Valid: true}
+	description := pgtype.Text{String: bodyReq.Description, Valid: bodyReq.Description != ""}
+	duration := util.MinutesToPGInterval(bodyReq.Duration)
+	completed := pgtype.Bool{Bool: bodyReq.Completed, Valid: true}
 
 	arg := db.UpdateTaskParams{
 		ID:          taskID,
-		Title:       req.Title,
+		Title:       bodyReq.Title,
 		Description: description,
 		Completed:   completed,
 		Duration:    duration,

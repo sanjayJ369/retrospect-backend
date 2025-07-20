@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -40,11 +41,16 @@ func TestCreateChallengeAPI(t *testing.T) {
 				EndDate:     endDate,
 			},
 			buildStub: func(store *mockDB.MockStore) {
+				// Parse the date from the request body and create the expected pgtype.Date
+				expectedEndDate, err := time.Parse("2006-01-02", endDate)
+				require.NoError(t, err)
+				expectedEndDatePg := pgtype.Date{Time: expectedEndDate, Valid: true}
+
 				arg := db.CreateChallengeParams{
 					Title:       challenge.Title,
 					UserID:      challenge.UserID,
 					Description: challenge.Description,
-					EndDate:     challenge.EndDate,
+					EndDate:     expectedEndDatePg,
 				}
 
 				store.EXPECT().
@@ -292,16 +298,19 @@ func TestUpdateChallengeAPI(t *testing.T) {
 				EndDate:     endDate,
 			},
 			buildStub: func(store *mockDB.MockStore) {
+				parsedEndDate, err := time.Parse("2006-01-02", endDate)
+				require.NoError(t, err)
 				arg := db.UpdateChallengeDetailsParams{
 					ID:          challenge.ID,
 					Title:       "Updated Title",
 					Description: pgtype.Text{String: "Updated Description", Valid: true},
-					EndDate:     challenge.EndDate,
+					EndDate:     pgtype.Date{Time: parsedEndDate, Valid: true},
 				}
 
 				updatedChallenge := challenge
 				updatedChallenge.Title = "Updated Title"
 				updatedChallenge.Description = pgtype.Text{String: "Updated Description", Valid: true}
+				updatedChallenge.EndDate = pgtype.Date{Time: parsedEndDate, Valid: true}
 
 				store.EXPECT().
 					UpdateChallengeDetails(gomock.Any(), gomock.Eq(arg)).
