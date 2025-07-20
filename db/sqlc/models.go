@@ -63,10 +63,12 @@ type TaskDay struct {
 }
 
 type User struct {
-	ID        pgtype.UUID      `json:"id"`
-	Email     string           `json:"email"`
-	Name      string           `json:"name"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
-	Timezone  string           `json:"timezone"`
+	ID                pgtype.UUID        `json:"id"`
+	Email             string             `json:"email"`
+	Name              string             `json:"name"`
+	CreatedAt         pgtype.Timestamp   `json:"created_at"`
+	UpdatedAt         pgtype.Timestamp   `json:"updated_at"`
+	Timezone          string             `json:"timezone"`
+	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
+	HashedPassword    string             `json:"hashed_password"`
 }

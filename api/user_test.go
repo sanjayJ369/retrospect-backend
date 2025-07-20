@@ -107,27 +107,58 @@ func TestGetUserAPI(t *testing.T) {
 func TestCreateUserAPI(t *testing.T) {
 	user := randomUesr()
 	createUserReq := db.CreateUserParams{
-		Name:  user.Name,
-		Email: user.Email,
+		Name:           user.Name,
+		Email:          user.Email,
+		HashedPassword: user.HashedPassword,
 	}
+
+	marshalledReq, err := json.Marshal(createUserReq)
+	require.NoError(t, err)
+	validUserDetails := bytes.NewReader(marshalledReq)
+	invalidUserDetails := bytes.NewReader([]byte("hello world :)"))
 
 	testCases := []struct {
 		name          string
-		userDetails   db.CreateUserParams
+		userDetails   *bytes.Reader
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "OK",
-			userDetails: db.CreateUserParams{
-				Name:  user.Name,
-				Email: user.Email,
-			},
+			name:        "OK",
+			userDetails: validUserDetails,
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), gomock.Eq(createUserReq)).
 					Times(1).
-					Return(user, http.StatusCreated)
+					Return(user, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusCreated, recorder.Code)
+			},
+		},
+		{
+			name:        "BadRequest",
+			userDetails: invalidUserDetails,
+			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					CreateUser(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name:        "InternalServerError",
+			userDetails: validUserDetails,
+			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					CreateUser(gomock.Any(), gomock.Eq(createUserReq)).
+					Times(1).
+					Return(db.User{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 	}
@@ -135,17 +166,34 @@ func TestCreateUserAPI(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
+			store := mockDB.NewMockStore(ctrl)
+			tc.buildStub(store)
+			tc.userDetails.Seek(0, 0)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			url := "/users"
+
+			req, err := http.NewRequest(http.MethodPost, url, tc.userDetails)
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, req)
+			tc.checkResponse(t, recorder)
 		})
 	}
 }
 
 func randomUesr() db.User {
 	return db.User{
-		ID:       util.GetUUIDPGType(),
-		Email:    util.GetRandomString(10),
-		Name:     util.GetRandomString(10),
-		Timezone: util.GetRandomTimezone(),
+		ID:             util.GetUUIDPGType(),
+		Email:          util.GetRandomString(10),
+		Name:           util.GetRandomString(10),
+		Timezone:       util.GetRandomTimezone(),
+		HashedPassword: util.GetRandomString(32), // Add hashed password field
 	}
 }
 

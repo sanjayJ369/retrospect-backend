@@ -183,7 +183,9 @@ CREATE TABLE public.users (
     name character varying NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone,
-    timezone character varying DEFAULT 'UTC'::character varying NOT NULL
+    timezone character varying DEFAULT 'UTC'::character varying NOT NULL,
+    password_changed_at timestamp with time zone DEFAULT '0001-01-01 00:00:00+00'::timestamp with time zone NOT NULL,
+    hashed_password character varying NOT NULL
 );
 
 

@@ -13,20 +13,21 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-  email, name
+  email, name, hashed_password
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 )
-RETURNING id, email, name, created_at, updated_at, timezone
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
 `
 
 type CreateUserParams struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	Email          string `json:"email"`
+	Name           string `json:"name"`
+	HashedPassword string `json:"hashed_password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Name)
+	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Name, arg.HashedPassword)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -35,6 +36,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
 	)
 	return i, err
 }
@@ -42,7 +45,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 const deleteUser = `-- name: DeleteUser :one
 DELETE FROM users
 WHERE id = $1
-RETURNING id, email, name, created_at, updated_at, timezone
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) {
@@ -55,12 +58,14 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, name, created_at, updated_at, timezone FROM users
+SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -74,12 +79,14 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, name, created_at, updated_at, timezone FROM users
+SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password FROM users
 ORDER BY name
 LIMIT $1
 OFFSET $2
@@ -106,6 +113,8 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Timezone,
+			&i.PasswordChangedAt,
+			&i.HashedPassword,
 		); err != nil {
 			return nil, err
 		}
@@ -124,7 +133,7 @@ SET
   updated_at = NOW()
 WHERE
   id = $1
-RETURNING id, email, name, created_at, updated_at, timezone
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
 `
 
 type UpdateUserEmailParams struct {
@@ -142,6 +151,8 @@ func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
 	)
 	return i, err
 }
@@ -153,7 +164,7 @@ SET
   updated_at = NOW()
 WHERE
   id = $1
-RETURNING id, email, name, created_at, updated_at, timezone
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
 `
 
 type UpdateUserNameParams struct {
@@ -171,6 +182,8 @@ func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
 	)
 	return i, err
 }
@@ -182,7 +195,7 @@ SET
   updated_at = NOW()
 WHERE
   id = $1
-RETURNING id, email, name, created_at, updated_at, timezone
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
 `
 
 type UpdateUserTimezoneParams struct {
@@ -200,6 +213,8 @@ func (q *Queries) UpdateUserTimezone(ctx context.Context, arg UpdateUserTimezone
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
 	)
 	return i, err
 }

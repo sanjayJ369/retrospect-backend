@@ -13,8 +13,9 @@ import (
 )
 
 type createUserRequest struct {
-	Email string `json:"email" binding:"required"`
-	Name  string `json:"name" binding:"required"`
+	Email          string `json:"email" binding:"required"`
+	Name           string `json:"name" binding:"required"`
+	HashedPassword string `json:"hashed_password" binding:"required"`
 }
 
 func (s *Server) createUser(ctx *gin.Context) {
@@ -25,8 +26,9 @@ func (s *Server) createUser(ctx *gin.Context) {
 	}
 
 	arg := db.CreateUserParams{
-		Email: req.Email,
-		Name:  req.Name,
+		Email:          req.Email,
+		Name:           req.Name,
+		HashedPassword: req.HashedPassword,
 	}
 
 	user, err := s.store.CreateUser(ctx, arg)
@@ -35,7 +37,7 @@ func (s *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusAccepted, user)
+	ctx.JSON(http.StatusCreated, user)
 }
 
 type getUsersRequest struct {

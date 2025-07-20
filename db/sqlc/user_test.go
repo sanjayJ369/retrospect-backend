@@ -11,8 +11,9 @@ import (
 
 func createRandomUser(t testing.TB) User {
 	arg := CreateUserParams{
-		Email: util.GetRandomString(10),
-		Name:  util.GetRandomString(10),
+		Email:          util.GetRandomString(10),
+		Name:           util.GetRandomString(10),
+		HashedPassword: util.GetRandomString(32), // Add random hashed password
 	}
 
 	user1, err := testQueries.CreateUser(context.Background(), arg)

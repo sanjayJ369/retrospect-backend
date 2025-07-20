@@ -13,8 +13,9 @@ import (
 func createUserWithTimezone(t testing.TB, timezone string) User {
 	t.Helper()
 	arg := CreateUserParams{
-		Email: util.GetRandomString(10),
-		Name:  util.GetRandomString(10),
+		Email:          util.GetRandomString(10),
+		Name:           util.GetRandomString(10),
+		HashedPassword: util.GetRandomString(32), // Add random hashed password
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)
