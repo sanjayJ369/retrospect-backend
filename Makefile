@@ -10,8 +10,14 @@ dropdb:
 migrateup: 
 	migrate -path db/migration -database "postgresql://root:root@localhost:5432/retrospect?sslmode=disable" --verbose up
 
+migrateup1: 
+	migrate -path db/migration -database "postgresql://root:root@localhost:5432/retrospect?sslmode=disable" --verbose up 1
+
 migratedown: 
 	migrate -path db/migration -database "postgresql://root:root@localhost:5432/retrospect?sslmode=disable" --verbose down
+
+migratedown1: 
+	migrate -path db/migration -database "postgresql://root:root@localhost:5432/retrospect?sslmode=disable" --verbose down 1
 
 dump_schema:
 	@mkdir -p db/schema
