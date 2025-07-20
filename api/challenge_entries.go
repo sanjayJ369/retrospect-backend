@@ -25,6 +25,7 @@ func (server *Server) updateChallengeEntries(ctx *gin.Context) {
 	parseUUID, err := uuid.Parse(req.ChallengeID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
 	}
 
 	var challengeID [16]byte = parseUUID
