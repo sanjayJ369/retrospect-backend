@@ -7,19 +7,23 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type Store struct {
+type Store interface {
+	Querier
+}
+
+type SQLStore struct {
 	*Queries
 	conn *pgx.Conn
 }
 
-func NewStore(conn *pgx.Conn) *Store {
-	return &Store{
+func NewStore(conn *pgx.Conn) Store {
+	return &SQLStore{
 		Queries: New(conn),
 		conn:    conn,
 	}
 }
 
-func (store *Store) execTxn(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTxn(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.conn.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err

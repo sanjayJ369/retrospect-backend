@@ -1,11 +1,13 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
 )
@@ -48,17 +50,14 @@ func (s *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
-	parsedUUID, err := uuid.Parse(req.ID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+	parsedUUID, _ := uuid.Parse(req.ID)
 
 	var userUUIDBytes [16]byte = parsedUUID
 
 	user, err := s.store.GetUser(ctx, pgtype.UUID{Bytes: userUUIDBytes, Valid: true})
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		fmt.Printf("%v", err)
+		if errors.Is(err, sql.ErrNoRows) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}

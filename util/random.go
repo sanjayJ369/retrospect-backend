@@ -3,6 +3,10 @@ package util
 import (
 	"math/rand"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // generates a random number between min and max including both
@@ -20,4 +24,30 @@ func GetRandomString(l int) string {
 		strbul.WriteByte(rchar)
 	}
 	return strbul.String()
+}
+
+func GetUUIDPGType() pgtype.UUID {
+	newID := uuid.New()
+	return pgtype.UUID{
+		Bytes: newID,
+		Valid: true,
+	}
+}
+
+var timezones = []string{
+	"UTC",
+	"America/New_York",
+	"America/Los_Angeles",
+	"Europe/London",
+	"Europe/Paris",
+	"Asia/Tokyo",
+	"Asia/Dubai",
+	"Asia/Kolkata",
+	"Australia/Sydney",
+	"Pacific/Honolulu",
+}
+
+func GetRandomTimezone() string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return timezones[r.Intn(len(timezones))]
 }
