@@ -639,17 +639,6 @@ func randomChallenge() db.Challenge {
 	}
 }
 
-// randomUser generates a random user for testing
-func randomUser() db.User {
-	return db.User{
-		ID:             util.GetUUIDPGType(),
-		Email:          util.GetRandomString(10) + "@example.com",
-		Name:           util.GetRandomString(10),
-		Timezone:       util.GetRandomTimezone(),
-		HashedPassword: util.GetRandomString(32),
-	}
-}
-
 // requireBodyMatchChallenge checks that the response body matches the expected challenge
 func requireBodyMatchChallenge(t *testing.T, body *bytes.Buffer, challenge db.Challenge) {
 	data, err := io.ReadAll(body)

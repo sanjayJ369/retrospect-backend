@@ -21,13 +21,13 @@ RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at
 `
 
 type CreateUserParams struct {
-	Email          string `json:"email"`
-	Name           string `json:"name"`
-	HashedPassword string `json:"hashed_password"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Name, arg.HashedPassword)
+	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Name, arg.Password)
 	var i User
 	err := row.Scan(
 		&i.ID,

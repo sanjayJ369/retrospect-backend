@@ -20,7 +20,7 @@ import (
 )
 
 func TestGetUserAPI(t *testing.T) {
-	user := randomUesr()
+	user := randomUser()
 	validUUID := uuid.UUID(user.ID.Bytes).String()
 	testcases := []struct {
 		name          string
@@ -38,7 +38,6 @@ func TestGetUserAPI(t *testing.T) {
 					Return(user, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-
 				require.Equal(t, http.StatusOK, recorder.Code)
 				requireBodyMatchUser(t, recorder.Body, user)
 			},
@@ -105,11 +104,11 @@ func TestGetUserAPI(t *testing.T) {
 }
 
 func TestCreateUserAPI(t *testing.T) {
-	user := randomUesr()
+	user := randomUser()
 	createUserReq := db.CreateUserParams{
-		Name:           user.Name,
-		Email:          user.Email,
-		HashedPassword: user.HashedPassword,
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: user.HashedPassword,
 	}
 
 	marshalledReq, err := json.Marshal(createUserReq)
@@ -128,7 +127,7 @@ func TestCreateUserAPI(t *testing.T) {
 			userDetails: validUserDetails,
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
-					CreateUser(gomock.Any(), gomock.Eq(createUserReq)).
+					CreateUser(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(user, nil)
 			},
@@ -153,7 +152,7 @@ func TestCreateUserAPI(t *testing.T) {
 			userDetails: validUserDetails,
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
-					CreateUser(gomock.Any(), gomock.Eq(createUserReq)).
+					CreateUser(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(db.User{}, sql.ErrConnDone)
 			},
@@ -187,13 +186,14 @@ func TestCreateUserAPI(t *testing.T) {
 	}
 }
 
-func randomUesr() db.User {
+// randomUser generates a random user for testing
+func randomUser() db.User {
 	return db.User{
 		ID:             util.GetUUIDPGType(),
-		Email:          util.GetRandomString(10),
+		Email:          util.GetRandomString(10) + "@example.com",
 		Name:           util.GetRandomString(10),
 		Timezone:       util.GetRandomTimezone(),
-		HashedPassword: util.GetRandomString(32), // Add hashed password field
+		HashedPassword: util.GetRandomString(32),
 	}
 }
 

@@ -17,5 +17,5 @@ func TestPassword(t *testing.T) {
 
 	wrongPassword := GetRandomString(6)
 	err = CheckPassword(wrongPassword, hashPassword)
-	require.NoError(t, err)
+	require.Error(t, err)
 }
