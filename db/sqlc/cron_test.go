@@ -12,10 +12,12 @@ import (
 // createUserWithTimezone creates a user with a specific timezone
 func createUserWithTimezone(t testing.TB, timezone string) User {
 	t.Helper()
+	hashedPassword, err := util.HashedPassword(util.GetRandomString(6))
+	require.NoError(t, err)
 	arg := CreateUserParams{
-		Email:    util.GetRandomString(10),
-		Name:     util.GetRandomString(10),
-		Password: util.GetRandomString(32), // Add random hashed password
+		Email:          util.GetRandomString(10),
+		Name:           util.GetRandomString(10),
+		HashedPassword: hashedPassword,
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)

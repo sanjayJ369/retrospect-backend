@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/gofrs/uuid"
@@ -104,13 +105,17 @@ func TestGetUserAPI(t *testing.T) {
 }
 
 func TestCreateUserAPI(t *testing.T) {
-	user := randomUser()
-	createUserReq := db.CreateUserParams{
-		Name:     user.Name,
-		Email:    user.Email,
-		Password: user.HashedPassword,
+	createUserReq := createUserRequest{
+		Name:     util.GetRandomString(6),
+		Email:    util.GetRandomString(6) + "@example.com",
+		Password: util.GetRandomString(6),
 	}
 
+	createUserParams := db.CreateUserParams{
+		Name:           createUserReq.Name,
+		Email:          createUserReq.Email,
+		HashedPassword: "",
+	}
 	marshalledReq, err := json.Marshal(createUserReq)
 	require.NoError(t, err)
 	validUserDetails := bytes.NewReader(marshalledReq)
@@ -127,9 +132,9 @@ func TestCreateUserAPI(t *testing.T) {
 			userDetails: validUserDetails,
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
-					CreateUser(gomock.Any(), gomock.Any()).
+					CreateUser(gomock.Any(), EqCreateUserParams(createUserParams, createUserReq.Password)).
 					Times(1).
-					Return(user, nil)
+					Return(randomUser(), nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusCreated, recorder.Code)
@@ -152,7 +157,7 @@ func TestCreateUserAPI(t *testing.T) {
 			userDetails: validUserDetails,
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
-					CreateUser(gomock.Any(), gomock.Any()).
+					CreateUser(gomock.Any(), EqCreateUserParams(createUserParams, createUserReq.Password)).
 					Times(1).
 					Return(db.User{}, sql.ErrConnDone)
 			},
@@ -209,4 +214,35 @@ func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
 	require.Equal(t, user.ID, gotUser.ID)
 	require.Equal(t, user.Name, gotUser.Name)
 	require.Equal(t, user.Email, gotUser.Email)
+}
+
+type eqUserMatcher struct {
+	arg      db.CreateUserParams
+	password string
+}
+
+func (e eqUserMatcher) Matches(x any) bool {
+	arg, err := x.(db.CreateUserParams)
+	if !err {
+		return false
+	}
+
+	if err := util.CheckPassword(e.password, arg.HashedPassword); err != nil {
+		return false
+	}
+
+	e.arg.HashedPassword = arg.HashedPassword
+
+	return reflect.DeepEqual(e.arg, arg)
+}
+
+func (e eqUserMatcher) String() string {
+	return fmt.Sprintf("is equal to %v", e.arg)
+}
+
+func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher {
+	return eqUserMatcher{
+		arg:      arg,
+		password: password,
+	}
 }
