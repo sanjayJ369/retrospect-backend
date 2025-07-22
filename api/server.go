@@ -1,22 +1,54 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	"github.com/sanjayj369/retrospect-backend/token"
+	"github.com/sanjayj369/retrospect-backend/util"
 )
 
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	maker, err := token.NewPasetoMaker(config.SymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+
+	server := &Server{
+		config:     config,
+		store:      store,
+		tokenMaker: maker,
+	}
+
+	setupRoutes(server)
+
+	return server, nil
+}
+
+// Start runs server on provided address
+func (s *Server) Start(address string) error {
+	return s.router.Run(address)
+}
+
+// errorResponse converts error to a json object
+func errorResponse(err error) gin.H {
+	return gin.H{"error": err.Error()}
+}
+
+func setupRoutes(server *Server) {
 	router := gin.Default()
 
 	// user routes
 	router.POST("/users", server.createUser)
-	router.GET("/users/:id", server.getUser)
+	router.POST("/users/login", server.LoginUser)
 
 	// challenge routes
 	router.POST("/challenges", server.createChallenge)
@@ -36,15 +68,4 @@ func NewServer(store db.Store) *Server {
 	router.GET("/tasks", server.listTasks)
 
 	server.router = router
-	return server
-}
-
-// Start runs server on provided address
-func (s *Server) Start(address string) error {
-	return s.router.Run(address)
-}
-
-// errorResponse converts error to a json object
-func errorResponse(err error) gin.H {
-	return gin.H{"error": err.Error()}
 }

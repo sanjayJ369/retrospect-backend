@@ -165,7 +165,7 @@ func TestCreateChallengeAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// Prepare request body
@@ -263,7 +263,7 @@ func TestGetChallengeAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/challenges/%s", tc.challengeID)
@@ -381,7 +381,7 @@ func TestUpdateChallengeAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// Prepare request body
@@ -466,7 +466,7 @@ func TestDeleteChallengeAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/challenges/%s", tc.challengeID)
@@ -601,7 +601,7 @@ func TestListChallengesAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// Use the corrected route /users/:id/challenges

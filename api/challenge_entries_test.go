@@ -164,7 +164,7 @@ func TestUpdateChallengeEntriesAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// Prepare request body

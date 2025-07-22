@@ -51,6 +51,13 @@ func TestGetUser(t *testing.T) {
 	require.Equal(t, user1, user2)
 }
 
+func TestGetUserByName(t *testing.T) {
+	user1 := createRandomUser(t)
+	user2, err := testQueries.GetUserByName(context.Background(), user1.Name)
+	require.NoError(t, err)
+	require.Equal(t, user1, user2)
+}
+
 func TestListUsers(t *testing.T) {
 	// TODO: update test for more through testing
 	arg := ListUsersParams{

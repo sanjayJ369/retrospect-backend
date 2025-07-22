@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	pgtype "github.com/jackc/pgx/v5/pgtype"
-	sqlc "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,10 +43,10 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // CreateChallenge mocks base method.
-func (m *MockStore) CreateChallenge(ctx context.Context, arg sqlc.CreateChallengeParams) (sqlc.Challenge, error) {
+func (m *MockStore) CreateChallenge(ctx context.Context, arg db.CreateChallengeParams) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateChallenge", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -58,10 +58,10 @@ func (mr *MockStoreMockRecorder) CreateChallenge(ctx, arg any) *gomock.Call {
 }
 
 // CreateChallengeEntry mocks base method.
-func (m *MockStore) CreateChallengeEntry(ctx context.Context, challengeID pgtype.UUID) (sqlc.ChallengeEntry, error) {
+func (m *MockStore) CreateChallengeEntry(ctx context.Context, challengeID pgtype.UUID) (db.ChallengeEntry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateChallengeEntry", ctx, challengeID)
-	ret0, _ := ret[0].(sqlc.ChallengeEntry)
+	ret0, _ := ret[0].(db.ChallengeEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -73,10 +73,10 @@ func (mr *MockStoreMockRecorder) CreateChallengeEntry(ctx, challengeID any) *gom
 }
 
 // CreateTask mocks base method.
-func (m *MockStore) CreateTask(ctx context.Context, arg sqlc.CreateTaskParams) (sqlc.Task, error) {
+func (m *MockStore) CreateTask(ctx context.Context, arg db.CreateTaskParams) (db.Task, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTask", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Task)
+	ret0, _ := ret[0].(db.Task)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,10 +88,10 @@ func (mr *MockStoreMockRecorder) CreateTask(ctx, arg any) *gomock.Call {
 }
 
 // CreateTaskDay mocks base method.
-func (m *MockStore) CreateTaskDay(ctx context.Context, userID pgtype.UUID) (sqlc.TaskDay, error) {
+func (m *MockStore) CreateTaskDay(ctx context.Context, userID pgtype.UUID) (db.TaskDay, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTaskDay", ctx, userID)
-	ret0, _ := ret[0].(sqlc.TaskDay)
+	ret0, _ := ret[0].(db.TaskDay)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -117,10 +117,10 @@ func (mr *MockStoreMockRecorder) CreateTaskDaysForUsersInTimezone(ctx, timezone 
 }
 
 // CreateUser mocks base method.
-func (m *MockStore) CreateUser(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error) {
+func (m *MockStore) CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", ctx, arg)
-	ret0, _ := ret[0].(sqlc.User)
+	ret0, _ := ret[0].(db.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -132,10 +132,10 @@ func (mr *MockStoreMockRecorder) CreateUser(ctx, arg any) *gomock.Call {
 }
 
 // DeleteChallenge mocks base method.
-func (m *MockStore) DeleteChallenge(ctx context.Context, id pgtype.UUID) (sqlc.Challenge, error) {
+func (m *MockStore) DeleteChallenge(ctx context.Context, id pgtype.UUID) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteChallenge", ctx, id)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -147,10 +147,10 @@ func (mr *MockStoreMockRecorder) DeleteChallenge(ctx, id any) *gomock.Call {
 }
 
 // DeleteChallengeEntry mocks base method.
-func (m *MockStore) DeleteChallengeEntry(ctx context.Context, id pgtype.UUID) (sqlc.ChallengeEntry, error) {
+func (m *MockStore) DeleteChallengeEntry(ctx context.Context, id pgtype.UUID) (db.ChallengeEntry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteChallengeEntry", ctx, id)
-	ret0, _ := ret[0].(sqlc.ChallengeEntry)
+	ret0, _ := ret[0].(db.ChallengeEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -162,10 +162,10 @@ func (mr *MockStoreMockRecorder) DeleteChallengeEntry(ctx, id any) *gomock.Call 
 }
 
 // DeleteTask mocks base method.
-func (m *MockStore) DeleteTask(ctx context.Context, id pgtype.UUID) (sqlc.Task, error) {
+func (m *MockStore) DeleteTask(ctx context.Context, id pgtype.UUID) (db.Task, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTask", ctx, id)
-	ret0, _ := ret[0].(sqlc.Task)
+	ret0, _ := ret[0].(db.Task)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -177,10 +177,10 @@ func (mr *MockStoreMockRecorder) DeleteTask(ctx, id any) *gomock.Call {
 }
 
 // DeleteTaskDay mocks base method.
-func (m *MockStore) DeleteTaskDay(ctx context.Context, id pgtype.UUID) (sqlc.TaskDay, error) {
+func (m *MockStore) DeleteTaskDay(ctx context.Context, id pgtype.UUID) (db.TaskDay, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTaskDay", ctx, id)
-	ret0, _ := ret[0].(sqlc.TaskDay)
+	ret0, _ := ret[0].(db.TaskDay)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -192,10 +192,10 @@ func (mr *MockStoreMockRecorder) DeleteTaskDay(ctx, id any) *gomock.Call {
 }
 
 // DeleteUser mocks base method.
-func (m *MockStore) DeleteUser(ctx context.Context, id pgtype.UUID) (sqlc.User, error) {
+func (m *MockStore) DeleteUser(ctx context.Context, id pgtype.UUID) (db.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUser", ctx, id)
-	ret0, _ := ret[0].(sqlc.User)
+	ret0, _ := ret[0].(db.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -207,10 +207,10 @@ func (mr *MockStoreMockRecorder) DeleteUser(ctx, id any) *gomock.Call {
 }
 
 // GetChallenge mocks base method.
-func (m *MockStore) GetChallenge(ctx context.Context, id pgtype.UUID) (sqlc.Challenge, error) {
+func (m *MockStore) GetChallenge(ctx context.Context, id pgtype.UUID) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChallenge", ctx, id)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -222,10 +222,10 @@ func (mr *MockStoreMockRecorder) GetChallenge(ctx, id any) *gomock.Call {
 }
 
 // GetChallengeEntry mocks base method.
-func (m *MockStore) GetChallengeEntry(ctx context.Context, id pgtype.UUID) (sqlc.ChallengeEntry, error) {
+func (m *MockStore) GetChallengeEntry(ctx context.Context, id pgtype.UUID) (db.ChallengeEntry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChallengeEntry", ctx, id)
-	ret0, _ := ret[0].(sqlc.ChallengeEntry)
+	ret0, _ := ret[0].(db.ChallengeEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -237,10 +237,10 @@ func (mr *MockStoreMockRecorder) GetChallengeEntry(ctx, id any) *gomock.Call {
 }
 
 // GetTask mocks base method.
-func (m *MockStore) GetTask(ctx context.Context, id pgtype.UUID) (sqlc.Task, error) {
+func (m *MockStore) GetTask(ctx context.Context, id pgtype.UUID) (db.Task, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTask", ctx, id)
-	ret0, _ := ret[0].(sqlc.Task)
+	ret0, _ := ret[0].(db.Task)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -252,10 +252,10 @@ func (mr *MockStoreMockRecorder) GetTask(ctx, id any) *gomock.Call {
 }
 
 // GetTaskDay mocks base method.
-func (m *MockStore) GetTaskDay(ctx context.Context, id pgtype.UUID) (sqlc.TaskDay, error) {
+func (m *MockStore) GetTaskDay(ctx context.Context, id pgtype.UUID) (db.TaskDay, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTaskDay", ctx, id)
-	ret0, _ := ret[0].(sqlc.TaskDay)
+	ret0, _ := ret[0].(db.TaskDay)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -282,10 +282,10 @@ func (mr *MockStoreMockRecorder) GetTimezonesWhereDayIsStarting(ctx any) *gomock
 }
 
 // GetUser mocks base method.
-func (m *MockStore) GetUser(ctx context.Context, id pgtype.UUID) (sqlc.User, error) {
+func (m *MockStore) GetUser(ctx context.Context, id pgtype.UUID) (db.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUser", ctx, id)
-	ret0, _ := ret[0].(sqlc.User)
+	ret0, _ := ret[0].(db.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -296,11 +296,26 @@ func (mr *MockStoreMockRecorder) GetUser(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockStore)(nil).GetUser), ctx, id)
 }
 
+// GetUserByName mocks base method.
+func (m *MockStore) GetUserByName(ctx context.Context, name string) (db.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByName", ctx, name)
+	ret0, _ := ret[0].(db.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByName indicates an expected call of GetUserByName.
+func (mr *MockStoreMockRecorder) GetUserByName(ctx, name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByName", reflect.TypeOf((*MockStore)(nil).GetUserByName), ctx, name)
+}
+
 // ListChallengeEntries mocks base method.
-func (m *MockStore) ListChallengeEntries(ctx context.Context, arg sqlc.ListChallengeEntriesParams) ([]sqlc.ChallengeEntry, error) {
+func (m *MockStore) ListChallengeEntries(ctx context.Context, arg db.ListChallengeEntriesParams) ([]db.ChallengeEntry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListChallengeEntries", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.ChallengeEntry)
+	ret0, _ := ret[0].([]db.ChallengeEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -312,10 +327,10 @@ func (mr *MockStoreMockRecorder) ListChallengeEntries(ctx, arg any) *gomock.Call
 }
 
 // ListChallengeEntriesByChallengeId mocks base method.
-func (m *MockStore) ListChallengeEntriesByChallengeId(ctx context.Context, arg sqlc.ListChallengeEntriesByChallengeIdParams) ([]sqlc.ChallengeEntry, error) {
+func (m *MockStore) ListChallengeEntriesByChallengeId(ctx context.Context, arg db.ListChallengeEntriesByChallengeIdParams) ([]db.ChallengeEntry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListChallengeEntriesByChallengeId", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.ChallengeEntry)
+	ret0, _ := ret[0].([]db.ChallengeEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -327,10 +342,10 @@ func (mr *MockStoreMockRecorder) ListChallengeEntriesByChallengeId(ctx, arg any)
 }
 
 // ListChallenges mocks base method.
-func (m *MockStore) ListChallenges(ctx context.Context, arg sqlc.ListChallengesParams) ([]sqlc.Challenge, error) {
+func (m *MockStore) ListChallenges(ctx context.Context, arg db.ListChallengesParams) ([]db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListChallenges", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.Challenge)
+	ret0, _ := ret[0].([]db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -342,10 +357,10 @@ func (mr *MockStoreMockRecorder) ListChallenges(ctx, arg any) *gomock.Call {
 }
 
 // ListChallengesByUser mocks base method.
-func (m *MockStore) ListChallengesByUser(ctx context.Context, arg sqlc.ListChallengesByUserParams) ([]sqlc.Challenge, error) {
+func (m *MockStore) ListChallengesByUser(ctx context.Context, arg db.ListChallengesByUserParams) ([]db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListChallengesByUser", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.Challenge)
+	ret0, _ := ret[0].([]db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -357,10 +372,10 @@ func (mr *MockStoreMockRecorder) ListChallengesByUser(ctx, arg any) *gomock.Call
 }
 
 // ListTaskDays mocks base method.
-func (m *MockStore) ListTaskDays(ctx context.Context, arg sqlc.ListTaskDaysParams) ([]sqlc.TaskDay, error) {
+func (m *MockStore) ListTaskDays(ctx context.Context, arg db.ListTaskDaysParams) ([]db.TaskDay, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTaskDays", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.TaskDay)
+	ret0, _ := ret[0].([]db.TaskDay)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -372,10 +387,10 @@ func (mr *MockStoreMockRecorder) ListTaskDays(ctx, arg any) *gomock.Call {
 }
 
 // ListTaskDaysByUserId mocks base method.
-func (m *MockStore) ListTaskDaysByUserId(ctx context.Context, arg sqlc.ListTaskDaysByUserIdParams) ([]sqlc.TaskDay, error) {
+func (m *MockStore) ListTaskDaysByUserId(ctx context.Context, arg db.ListTaskDaysByUserIdParams) ([]db.TaskDay, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTaskDaysByUserId", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.TaskDay)
+	ret0, _ := ret[0].([]db.TaskDay)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -387,10 +402,10 @@ func (mr *MockStoreMockRecorder) ListTaskDaysByUserId(ctx, arg any) *gomock.Call
 }
 
 // ListTasks mocks base method.
-func (m *MockStore) ListTasks(ctx context.Context, arg sqlc.ListTasksParams) ([]sqlc.Task, error) {
+func (m *MockStore) ListTasks(ctx context.Context, arg db.ListTasksParams) ([]db.Task, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTasks", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.Task)
+	ret0, _ := ret[0].([]db.Task)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -402,10 +417,10 @@ func (mr *MockStoreMockRecorder) ListTasks(ctx, arg any) *gomock.Call {
 }
 
 // ListTasksByTaskDayId mocks base method.
-func (m *MockStore) ListTasksByTaskDayId(ctx context.Context, taskDayID pgtype.UUID) ([]sqlc.Task, error) {
+func (m *MockStore) ListTasksByTaskDayId(ctx context.Context, taskDayID pgtype.UUID) ([]db.Task, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTasksByTaskDayId", ctx, taskDayID)
-	ret0, _ := ret[0].([]sqlc.Task)
+	ret0, _ := ret[0].([]db.Task)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -417,10 +432,10 @@ func (mr *MockStoreMockRecorder) ListTasksByTaskDayId(ctx, taskDayID any) *gomoc
 }
 
 // ListUsers mocks base method.
-func (m *MockStore) ListUsers(ctx context.Context, arg sqlc.ListUsersParams) ([]sqlc.User, error) {
+func (m *MockStore) ListUsers(ctx context.Context, arg db.ListUsersParams) ([]db.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListUsers", ctx, arg)
-	ret0, _ := ret[0].([]sqlc.User)
+	ret0, _ := ret[0].([]db.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -432,10 +447,10 @@ func (mr *MockStoreMockRecorder) ListUsers(ctx, arg any) *gomock.Call {
 }
 
 // UpdateChallengeActiveStatus mocks base method.
-func (m *MockStore) UpdateChallengeActiveStatus(ctx context.Context, arg sqlc.UpdateChallengeActiveStatusParams) (sqlc.Challenge, error) {
+func (m *MockStore) UpdateChallengeActiveStatus(ctx context.Context, arg db.UpdateChallengeActiveStatusParams) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChallengeActiveStatus", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -447,10 +462,10 @@ func (mr *MockStoreMockRecorder) UpdateChallengeActiveStatus(ctx, arg any) *gomo
 }
 
 // UpdateChallengeDescription mocks base method.
-func (m *MockStore) UpdateChallengeDescription(ctx context.Context, arg sqlc.UpdateChallengeDescriptionParams) (sqlc.Challenge, error) {
+func (m *MockStore) UpdateChallengeDescription(ctx context.Context, arg db.UpdateChallengeDescriptionParams) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChallengeDescription", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -462,10 +477,10 @@ func (mr *MockStoreMockRecorder) UpdateChallengeDescription(ctx, arg any) *gomoc
 }
 
 // UpdateChallengeDetails mocks base method.
-func (m *MockStore) UpdateChallengeDetails(ctx context.Context, arg sqlc.UpdateChallengeDetailsParams) (sqlc.Challenge, error) {
+func (m *MockStore) UpdateChallengeDetails(ctx context.Context, arg db.UpdateChallengeDetailsParams) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChallengeDetails", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -477,10 +492,10 @@ func (mr *MockStoreMockRecorder) UpdateChallengeDetails(ctx, arg any) *gomock.Ca
 }
 
 // UpdateChallengeEndDate mocks base method.
-func (m *MockStore) UpdateChallengeEndDate(ctx context.Context, arg sqlc.UpdateChallengeEndDateParams) (sqlc.Challenge, error) {
+func (m *MockStore) UpdateChallengeEndDate(ctx context.Context, arg db.UpdateChallengeEndDateParams) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChallengeEndDate", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -492,10 +507,10 @@ func (mr *MockStoreMockRecorder) UpdateChallengeEndDate(ctx, arg any) *gomock.Ca
 }
 
 // UpdateChallengeEntry mocks base method.
-func (m *MockStore) UpdateChallengeEntry(ctx context.Context, arg sqlc.UpdateChallengeEntryParams) (sqlc.ChallengeEntry, error) {
+func (m *MockStore) UpdateChallengeEntry(ctx context.Context, arg db.UpdateChallengeEntryParams) (db.ChallengeEntry, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChallengeEntry", ctx, arg)
-	ret0, _ := ret[0].(sqlc.ChallengeEntry)
+	ret0, _ := ret[0].(db.ChallengeEntry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -507,10 +522,10 @@ func (mr *MockStoreMockRecorder) UpdateChallengeEntry(ctx, arg any) *gomock.Call
 }
 
 // UpdateChallengeTitle mocks base method.
-func (m *MockStore) UpdateChallengeTitle(ctx context.Context, arg sqlc.UpdateChallengeTitleParams) (sqlc.Challenge, error) {
+func (m *MockStore) UpdateChallengeTitle(ctx context.Context, arg db.UpdateChallengeTitleParams) (db.Challenge, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChallengeTitle", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Challenge)
+	ret0, _ := ret[0].(db.Challenge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -522,10 +537,10 @@ func (mr *MockStoreMockRecorder) UpdateChallengeTitle(ctx, arg any) *gomock.Call
 }
 
 // UpdateTask mocks base method.
-func (m *MockStore) UpdateTask(ctx context.Context, arg sqlc.UpdateTaskParams) (sqlc.Task, error) {
+func (m *MockStore) UpdateTask(ctx context.Context, arg db.UpdateTaskParams) (db.Task, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTask", ctx, arg)
-	ret0, _ := ret[0].(sqlc.Task)
+	ret0, _ := ret[0].(db.Task)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -537,10 +552,10 @@ func (mr *MockStoreMockRecorder) UpdateTask(ctx, arg any) *gomock.Call {
 }
 
 // UpdateUserEmail mocks base method.
-func (m *MockStore) UpdateUserEmail(ctx context.Context, arg sqlc.UpdateUserEmailParams) (sqlc.User, error) {
+func (m *MockStore) UpdateUserEmail(ctx context.Context, arg db.UpdateUserEmailParams) (db.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserEmail", ctx, arg)
-	ret0, _ := ret[0].(sqlc.User)
+	ret0, _ := ret[0].(db.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -552,10 +567,10 @@ func (mr *MockStoreMockRecorder) UpdateUserEmail(ctx, arg any) *gomock.Call {
 }
 
 // UpdateUserName mocks base method.
-func (m *MockStore) UpdateUserName(ctx context.Context, arg sqlc.UpdateUserNameParams) (sqlc.User, error) {
+func (m *MockStore) UpdateUserName(ctx context.Context, arg db.UpdateUserNameParams) (db.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserName", ctx, arg)
-	ret0, _ := ret[0].(sqlc.User)
+	ret0, _ := ret[0].(db.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -567,10 +582,10 @@ func (mr *MockStoreMockRecorder) UpdateUserName(ctx, arg any) *gomock.Call {
 }
 
 // UpdateUserTimezone mocks base method.
-func (m *MockStore) UpdateUserTimezone(ctx context.Context, arg sqlc.UpdateUserTimezoneParams) (sqlc.User, error) {
+func (m *MockStore) UpdateUserTimezone(ctx context.Context, arg db.UpdateUserTimezoneParams) (db.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserTimezone", ctx, arg)
-	ret0, _ := ret[0].(sqlc.User)
+	ret0, _ := ret[0].(db.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

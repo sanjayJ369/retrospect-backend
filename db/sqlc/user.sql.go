@@ -85,6 +85,27 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 	return i, err
 }
 
+const getUserByName = `-- name: GetUserByName :one
+SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password FROM users 
+WHERE name = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByName(ctx context.Context, name string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByName, name)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
+	)
+	return i, err
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password FROM users
 ORDER BY name

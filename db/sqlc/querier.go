@@ -32,6 +32,7 @@ type Querier interface {
 	// We can then find all users for these timezones.
 	GetTimezonesWhereDayIsStarting(ctx context.Context) ([]string, error)
 	GetUser(ctx context.Context, id pgtype.UUID) (User, error)
+	GetUserByName(ctx context.Context, name string) (User, error)
 	ListChallengeEntries(ctx context.Context, arg ListChallengeEntriesParams) ([]ChallengeEntry, error)
 	ListChallengeEntriesByChallengeId(ctx context.Context, arg ListChallengeEntriesByChallengeIdParams) ([]ChallengeEntry, error)
 	ListChallenges(ctx context.Context, arg ListChallengesParams) ([]Challenge, error)

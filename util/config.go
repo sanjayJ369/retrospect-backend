@@ -1,11 +1,17 @@
 package util
 
-import "github.com/spf13/viper"
+import (
+	"time"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
-	DBName        string `mapstructure:"DB_NAME"`
-	DBSource      string `mapstructure:"DB_SOURCE"`
-	ServerAddress string `mapstructure:"ADDRESS"`
+	DBName        string        `mapstructure:"DB_NAME"`
+	DBSource      string        `mapstructure:"DB_SOURCE"`
+	ServerAddress string        `mapstructure:"ADDRESS"`
+	SymmetricKey  string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	Duration      time.Duration `mapstructure:"TOKEN_DURATION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
