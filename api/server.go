@@ -48,6 +48,7 @@ func setupRoutes(server *Server) {
 
 	// user routes
 	router.POST("/users", server.createUser)
+	router.GET("/users/:id", server.getUser)
 	router.POST("/users/login", server.LoginUser)
 
 	// challenge routes
