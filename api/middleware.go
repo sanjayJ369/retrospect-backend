@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	authorizationHeaderKey  = "authorization"
+	authorizationHeaderKey  = "Authorization"
 	authorizationTypeBearer = "bearer"
 	authorizationPayloadKey = "authorization_payload"
 )

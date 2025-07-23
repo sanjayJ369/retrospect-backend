@@ -32,6 +32,15 @@ func (server *Server) updateChallengeEntries(ctx *gin.Context) {
 	}
 
 	var challengeID [16]byte = parseUUID
+	challenge, err := server.store.GetChallenge(ctx, pgtype.UUID{Bytes: challengeID, Valid: true})
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+		return
+	}
+	if err := authorizeUser(ctx, challenge.UserID.Bytes); err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
 
 	var bodyReq updateChallengeEntriesBodyRequest
 	err = ctx.ShouldBindJSON(&bodyReq)

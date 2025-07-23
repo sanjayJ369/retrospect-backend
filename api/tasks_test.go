@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	mockDB "github.com/sanjayj369/retrospect-backend/db/mock"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -24,21 +25,28 @@ import (
 
 func TestCreateTaskAPI(t *testing.T) {
 	task := randomTask()
-	taskDayID := uuid.UUID(task.TaskDayID.Bytes).String()
+	taskDayID := uuid.UUID(task.TaskDayID.Bytes)
+	taskDayIDPGType := pgtype.UUID{Bytes: taskDayID, Valid: true}
+	userID := uuid.UUID(task.TaskDayID.Bytes)
 
 	testCases := []struct {
 		name          string
 		body          createTaskRequest
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "OK",
 			body: createTaskRequest{
-				TaskDayID:   taskDayID,
+				TaskDayID:   taskDayID.String(),
 				Title:       task.Title,
 				Description: task.Description.String,
-				Duration:    60, // 60 minutes
+				Duration:    60,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.CreateTaskParams{
@@ -47,6 +55,13 @@ func TestCreateTaskAPI(t *testing.T) {
 					Description: task.Description,
 					Duration:    util.MinutesToPGInterval(60),
 				}
+
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
 
 				store.EXPECT().
 					CreateTask(gomock.Any(), gomock.Eq(arg)).
@@ -61,6 +76,10 @@ func TestCreateTaskAPI(t *testing.T) {
 		{
 			name: "Bad Request - Invalid JSON",
 			body: createTaskRequest{}, // This will be overridden with invalid JSON
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					CreateTask(gomock.Any(), gomock.Any()).
@@ -73,9 +92,13 @@ func TestCreateTaskAPI(t *testing.T) {
 		{
 			name: "Bad Request - Missing Title",
 			body: createTaskRequest{
-				TaskDayID:   taskDayID,
+				TaskDayID:   taskDayID.String(),
 				Description: task.Description.String,
 				Duration:    60,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
@@ -94,6 +117,10 @@ func TestCreateTaskAPI(t *testing.T) {
 				Description: task.Description.String,
 				Duration:    60,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					CreateTask(gomock.Any(), gomock.Any()).
@@ -106,9 +133,13 @@ func TestCreateTaskAPI(t *testing.T) {
 		{
 			name: "Bad Request - Missing Duration",
 			body: createTaskRequest{
-				TaskDayID:   taskDayID,
+				TaskDayID:   taskDayID.String(),
 				Title:       task.Title,
 				Description: task.Description.String,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
@@ -122,9 +153,13 @@ func TestCreateTaskAPI(t *testing.T) {
 		{
 			name: "OK - Without Description",
 			body: createTaskRequest{
-				TaskDayID: taskDayID,
+				TaskDayID: taskDayID.String(),
 				Title:     task.Title,
 				Duration:  60,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				expectedArg := db.CreateTaskParams{
@@ -138,6 +173,13 @@ func TestCreateTaskAPI(t *testing.T) {
 				taskWithoutDescription.Description = pgtype.Text{String: "", Valid: false}
 
 				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
+
+				store.EXPECT().
 					CreateTask(gomock.Any(), gomock.Eq(expectedArg)).
 					Times(1).
 					Return(taskWithoutDescription, nil)
@@ -149,12 +191,23 @@ func TestCreateTaskAPI(t *testing.T) {
 		{
 			name: "Internal Server Error",
 			body: createTaskRequest{
-				TaskDayID:   taskDayID,
+				TaskDayID:   taskDayID.String(),
 				Title:       task.Title,
 				Description: task.Description.String,
 				Duration:    60,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
+
 				store.EXPECT().
 					CreateTask(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -194,6 +247,7 @@ func TestCreateTaskAPI(t *testing.T) {
 
 			req.Header.Set("Content-Type", "application/json")
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -531,12 +585,17 @@ func TestListTasksAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		taskDayID     string
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:      "OK",
 			taskDayID: taskDayID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, taskDay.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					ListTasksByTaskDayId(gomock.Any(), gomock.Eq(taskDay.ID)).

@@ -4,7 +4,6 @@ go 1.24.5
 
 require (
 	github.com/gin-gonic/gin v1.10.1
-	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5

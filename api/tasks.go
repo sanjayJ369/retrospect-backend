@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +35,16 @@ func (s *Server) createTask(ctx *gin.Context) {
 	taskDayID := pgtype.UUID{Bytes: parseUUID, Valid: true}
 	description := pgtype.Text{String: req.Description, Valid: req.Description != ""}
 	duration := util.MinutesToPGInterval(req.Duration)
+
+	taskDay, err := s.store.GetTaskDay(ctx, taskDayID)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+		return
+	}
+	if err := authorizeUser(ctx, taskDay.UserID.Bytes); err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
 
 	arg := db.CreateTaskParams{
 		TaskDayID:   taskDayID,
@@ -75,6 +87,17 @@ func (s *Server) getTask(ctx *gin.Context) {
 		return
 	}
 
+	taskDay, err := s.store.GetTaskDay(ctx, task.TaskDayID)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+		return
+	}
+
+	if err := authorizeUser(ctx, taskDay.UserID.Bytes); err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, task)
 }
 
@@ -113,6 +136,12 @@ func (s *Server) updateTask(ctx *gin.Context) {
 	duration := util.MinutesToPGInterval(bodyReq.Duration)
 	completed := pgtype.Bool{Bool: bodyReq.Completed, Valid: true}
 
+	code, err := authrorizeTask(s, ctx, taskID)
+	if err != nil {
+		ctx.JSON(code, errorResponse(err))
+		return
+	}
+
 	arg := db.UpdateTaskParams{
 		ID:          taskID,
 		Title:       bodyReq.Title,
@@ -148,6 +177,11 @@ func (s *Server) deleteTask(ctx *gin.Context) {
 	}
 
 	taskID := pgtype.UUID{Bytes: parseUUID, Valid: true}
+	code, err := authrorizeTask(s, ctx, taskID)
+	if err != nil {
+		ctx.JSON(code, errorResponse(err))
+		return
+	}
 
 	res, err := s.store.DeleteTask(ctx, taskID)
 	if err != nil {
@@ -176,6 +210,20 @@ func (s *Server) listTasks(ctx *gin.Context) {
 	}
 
 	taskDayID := pgtype.UUID{Bytes: parseUUID, Valid: true}
+	taskDay, err := s.store.GetTaskDay(ctx, taskDayID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	if err := authorizeUser(ctx, taskDay.UserID.Bytes); err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
 
 	tasks, err := s.store.ListTasksByTaskDayId(ctx, taskDayID)
 	if err != nil {
@@ -184,4 +232,28 @@ func (s *Server) listTasks(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, tasks)
+}
+
+func authrorizeTask(s *Server, ctx *gin.Context, taskID pgtype.UUID) (int, error) {
+	task, err := s.store.GetTask(ctx, taskID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return http.StatusNotFound, err
+		}
+		return http.StatusInternalServerError, err
+	}
+
+	taskDay, err := s.store.GetTaskDay(ctx, task.TaskDayID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return http.StatusNotFound, err
+		}
+		return http.StatusInternalServerError, err
+	}
+
+	if err := authorizeUser(ctx, taskDay.UserID.Bytes); err != nil {
+		return http.StatusUnauthorized, err
+	}
+
+	return http.StatusOK, nil
 }

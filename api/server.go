@@ -48,25 +48,28 @@ func setupRoutes(server *Server) {
 
 	// user routes
 	router.POST("/users", server.createUser)
-	router.GET("/users/:id", server.getUser)
 	router.POST("/users/login", server.LoginUser)
 
+	// authorized routers
+	authRouter := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authRouter.GET("/users/:id", server.getUser)
+
 	// challenge routes
-	router.POST("/challenges", server.createChallenge)
-	router.GET("/challenges/:id", server.getChallenge) // TODO: update to include challenge entries
-	router.PATCH("/challenges/:id", server.updateChallenge)
-	router.DELETE("/challenges/:id", server.deleteChallenge)
-	router.GET("/users/:id/challenges", server.listChallenges)
+	authRouter.POST("/challenges", server.createChallenge)
+	authRouter.GET("/challenges/:id", server.getChallenge) // TODO: update to include challenge entries
+	authRouter.PATCH("/challenges/:id", server.updateChallenge)
+	authRouter.DELETE("/challenges/:id", server.deleteChallenge)
+	authRouter.GET("/users/:id/challenges", server.listChallenges)
 
 	// challenge entries
-	router.PUT("/challenge-entries/:id", server.updateChallengeEntries)
+	authRouter.PUT("/challenge-entries/:id", server.updateChallengeEntries)
 
 	// tasks
-	router.POST("/tasks", server.createTask)
-	router.GET("/tasks/:id", server.getTask)
-	router.PATCH("/tasks/:id", server.updateTask)
-	router.DELETE("/tasks/:id", server.deleteTask)
-	router.GET("/tasks", server.listTasks)
+	authRouter.POST("/tasks", server.createTask)
+	authRouter.GET("/tasks/:id", server.getTask)
+	authRouter.PATCH("/tasks/:id", server.updateTask)
+	authRouter.DELETE("/tasks/:id", server.deleteTask)
+	authRouter.GET("/tasks", server.listTasks)
 
 	server.router = router
 }

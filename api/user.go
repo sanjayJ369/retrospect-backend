@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 )
 
@@ -93,6 +94,12 @@ func (s *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
+	err = authorizeUser(ctx, user.ID.Bytes)
+	if err != nil {
+		ctx.JSON(http.StatusForbidden, errorResponse(err))
+		return
+	}
+
 	res := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, res)
@@ -151,4 +158,18 @@ func (s *Server) LoginUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, res)
 
+}
+
+func authorizeUser(ctx *gin.Context, userId uuid.UUID) error {
+	tkn := ctx.MustGet(authorizationPayloadKey)
+	payload, ok := tkn.(*token.Payload)
+	if !ok {
+		err := fmt.Errorf("invalid token")
+		return err
+	}
+	if payload.UserId != userId {
+		err := fmt.Errorf("account does not belong to the authorized user")
+		return err
+	}
+	return nil
 }
