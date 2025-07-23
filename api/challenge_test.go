@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	mockDB "github.com/sanjayj369/retrospect-backend/db/mock"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -29,6 +30,7 @@ func TestCreateChallengeAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          createChallengeRequest
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -39,6 +41,10 @@ func TestCreateChallengeAPI(t *testing.T) {
 				UserID:      userID,
 				Description: challenge.Description.String,
 				EndDate:     endDate,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				// Parse the date from the request body and create the expected pgtype.Date
@@ -66,6 +72,10 @@ func TestCreateChallengeAPI(t *testing.T) {
 		{
 			name: "Bad Request - Invalid JSON",
 			body: createChallengeRequest{}, // This will be overridden with invalid JSON
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					CreateChallenge(gomock.Any(), gomock.Any()).
@@ -81,6 +91,10 @@ func TestCreateChallengeAPI(t *testing.T) {
 				UserID:      userID,
 				Description: challenge.Description.String,
 				EndDate:     endDate,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
@@ -99,6 +113,10 @@ func TestCreateChallengeAPI(t *testing.T) {
 				Description: challenge.Description.String,
 				EndDate:     endDate,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					CreateChallenge(gomock.Any(), gomock.Any()).
@@ -115,6 +133,10 @@ func TestCreateChallengeAPI(t *testing.T) {
 				UserID:      userID,
 				Description: challenge.Description.String,
 				EndDate:     "invalid-date", // This will make EndDate invalid
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				expectedArg := db.CreateChallengeParams{
@@ -143,6 +165,10 @@ func TestCreateChallengeAPI(t *testing.T) {
 				UserID:      userID,
 				Description: challenge.Description.String,
 				EndDate:     endDate,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
@@ -184,6 +210,7 @@ func TestCreateChallengeAPI(t *testing.T) {
 
 			req.Header.Set("Content-Type", "application/json")
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -197,12 +224,17 @@ func TestGetChallengeAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		challengeID   string
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:        "OK",
 			challengeID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					GetChallenge(gomock.Any(), gomock.Eq(challenge.ID)).
@@ -217,6 +249,10 @@ func TestGetChallengeAPI(t *testing.T) {
 		{
 			name:        "Bad Request - Invalid UUID",
 			challengeID: "invalid-uuid",
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					GetChallenge(gomock.Any(), gomock.Any()).
@@ -229,6 +265,10 @@ func TestGetChallengeAPI(t *testing.T) {
 		{
 			name:        "Not Found",
 			challengeID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					GetChallenge(gomock.Any(), gomock.Eq(challenge.ID)).
@@ -242,6 +282,10 @@ func TestGetChallengeAPI(t *testing.T) {
 		{
 			name:        "Internal Server Error",
 			challengeID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					GetChallenge(gomock.Any(), gomock.Eq(challenge.ID)).
@@ -270,6 +314,7 @@ func TestGetChallengeAPI(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -280,11 +325,12 @@ func TestUpdateChallengeAPI(t *testing.T) {
 	challenge := randomChallenge()
 	validUUID := uuid.UUID(challenge.ID.Bytes).String()
 	endDate := challenge.EndDate.Time.Format("2006-01-02")
-
+	challengeIDPGType := pgtype.UUID{Bytes: challenge.ID.Bytes, Valid: true}
 	testCases := []struct {
 		name          string
 		challengeID   string
 		body          updateChallengeRequest
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -296,6 +342,10 @@ func TestUpdateChallengeAPI(t *testing.T) {
 				Title:       "Updated Title",
 				Description: "Updated Description",
 				EndDate:     endDate,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				parsedEndDate, err := time.Parse("2006-01-02", endDate)
@@ -313,6 +363,11 @@ func TestUpdateChallengeAPI(t *testing.T) {
 				updatedChallenge.EndDate = pgtype.Date{Time: parsedEndDate, Valid: true}
 
 				store.EXPECT().
+					GetChallenge(gomock.Any(), gomock.Eq(challengeIDPGType)).
+					Times(1).
+					Return(challenge, nil)
+
+				store.EXPECT().
 					UpdateChallengeDetails(gomock.Any(), gomock.Eq(arg)).
 					Times(1).
 					Return(updatedChallenge, nil)
@@ -325,6 +380,10 @@ func TestUpdateChallengeAPI(t *testing.T) {
 			name:        "Bad Request - Invalid JSON",
 			challengeID: validUUID,
 			body:        updateChallengeRequest{}, // This will be overridden with invalid JSON
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					UpdateChallengeDetails(gomock.Any(), gomock.Any()).
@@ -341,6 +400,10 @@ func TestUpdateChallengeAPI(t *testing.T) {
 				ID:          validUUID,
 				Description: "Updated Description",
 				EndDate:     endDate,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
@@ -360,7 +423,16 @@ func TestUpdateChallengeAPI(t *testing.T) {
 				Description: "Updated Description",
 				EndDate:     endDate,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetChallenge(gomock.Any(), gomock.Eq(challengeIDPGType)).
+					Times(1).
+					Return(challenge, nil)
+
 				store.EXPECT().
 					UpdateChallengeDetails(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -400,6 +472,7 @@ func TestUpdateChallengeAPI(t *testing.T) {
 
 			req.Header.Set("Content-Type", "application/json")
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -409,17 +482,28 @@ func TestUpdateChallengeAPI(t *testing.T) {
 func TestDeleteChallengeAPI(t *testing.T) {
 	challenge := randomChallenge()
 	validUUID := uuid.UUID(challenge.ID.Bytes).String()
+	challengeIDPGType := pgtype.UUID{Bytes: challenge.ID.Bytes, Valid: true}
 
 	testCases := []struct {
 		name          string
 		challengeID   string
 		buildStub     func(store *mockDB.MockStore)
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:        "OK",
 			challengeID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetChallenge(gomock.Any(), gomock.Eq(challengeIDPGType)).
+					Times(1).
+					Return(challenge, nil)
+
 				store.EXPECT().
 					DeleteChallenge(gomock.Any(), gomock.Eq(challenge.ID)).
 					Times(1).
@@ -433,6 +517,10 @@ func TestDeleteChallengeAPI(t *testing.T) {
 		{
 			name:        "Bad Request - Invalid UUID",
 			challengeID: "invalid-uuid",
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					DeleteChallenge(gomock.Any(), gomock.Any()).
@@ -445,7 +533,16 @@ func TestDeleteChallengeAPI(t *testing.T) {
 		{
 			name:        "Internal Server Error",
 			challengeID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, challenge.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetChallenge(gomock.Any(), gomock.Eq(challengeIDPGType)).
+					Times(1).
+					Return(challenge, nil)
+
 				store.EXPECT().
 					DeleteChallenge(gomock.Any(), gomock.Eq(challenge.ID)).
 					Times(1).
@@ -473,6 +570,7 @@ func TestDeleteChallengeAPI(t *testing.T) {
 			req, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -494,6 +592,7 @@ func TestListChallengesAPI(t *testing.T) {
 		userID        string
 		pageSize      int32
 		pageIdx       int32
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -502,6 +601,10 @@ func TestListChallengesAPI(t *testing.T) {
 			userID:   userID,
 			pageSize: 5,
 			pageIdx:  0,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, user.ID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.ListChallengesByUserParams{
 					UserID: user.ID,
@@ -524,6 +627,10 @@ func TestListChallengesAPI(t *testing.T) {
 			userID:   userID,
 			pageSize: 0, // Should default to 10
 			pageIdx:  0,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, user.ID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.ListChallengesByUserParams{
 					UserID: user.ID,
@@ -545,6 +652,10 @@ func TestListChallengesAPI(t *testing.T) {
 			userID:   userID,
 			pageSize: 2,
 			pageIdx:  1,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, user.ID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.ListChallengesByUserParams{
 					UserID: user.ID,
@@ -566,6 +677,10 @@ func TestListChallengesAPI(t *testing.T) {
 			userID:   "invalid-uuid",
 			pageSize: 5,
 			pageIdx:  0,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, user.ID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					ListChallengesByUser(gomock.Any(), gomock.Any()).
@@ -580,6 +695,10 @@ func TestListChallengesAPI(t *testing.T) {
 			userID:   userID,
 			pageSize: 5,
 			pageIdx:  0,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, user.ID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					ListChallengesByUser(gomock.Any(), gomock.Any()).
@@ -610,6 +729,7 @@ func TestListChallengesAPI(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})

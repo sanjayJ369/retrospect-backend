@@ -10,7 +10,7 @@ import (
 )
 
 type updateChallengeEntriesUriRequest struct {
-	ChallengeID string `uri:"id" binding:"required,uuid"`
+	ID string `uri:"id" binding:"required,uuid"`
 }
 
 type updateChallengeEntriesBodyRequest struct {
@@ -19,41 +19,41 @@ type updateChallengeEntriesBodyRequest struct {
 
 func (server *Server) updateChallengeEntries(ctx *gin.Context) {
 	var uriReq updateChallengeEntriesUriRequest
-	err := ctx.ShouldBindUri(&uriReq)
-	if err != nil {
+	if err := ctx.ShouldBindUri(&uriReq); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
-	parseUUID, err := uuid.Parse(uriReq.ChallengeID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
-
-	var challengeID [16]byte = parseUUID
-	challenge, err := server.store.GetChallenge(ctx, pgtype.UUID{Bytes: challengeID, Valid: true})
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, errorResponse(err))
-		return
-	}
-	if err := authorizeUser(ctx, challenge.UserID.Bytes); err != nil {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 
 	var bodyReq updateChallengeEntriesBodyRequest
-	err = ctx.ShouldBindJSON(&bodyReq)
-	if err != nil {
+	if err := ctx.ShouldBindJSON(&bodyReq); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	arg := db.UpdateChallengeEntryParams{
-		ID:        pgtype.UUID{Bytes: challengeID, Valid: true},
-		Completed: pgtype.Bool{Bool: bodyReq.Complete, Valid: true},
+	parsedEntryUUID, _ := uuid.Parse(uriReq.ID)
+	entryID := pgtype.UUID{Bytes: parsedEntryUUID, Valid: true}
+
+	entry, err := server.store.GetChallengeEntry(ctx, entryID)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+		return
 	}
 
+	challenge, err := server.store.GetChallenge(ctx, entry.ChallengeID)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+		return
+	}
+
+	if err := authorizeUser(ctx, challenge.UserID.Bytes); err != nil {
+		ctx.JSON(http.StatusForbidden, errorResponse(err))
+		return
+	}
+
+	arg := db.UpdateChallengeEntryParams{
+		ID:        entryID,
+		Completed: pgtype.Bool{Bool: bodyReq.Complete, Valid: true},
+	}
 	res, err := server.store.UpdateChallengeEntry(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

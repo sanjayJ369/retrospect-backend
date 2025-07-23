@@ -85,7 +85,7 @@ func (server *Server) getChallenge(ctx *gin.Context) {
 		return
 	}
 
-	err = authorizeUser(ctx, challenge.ID.Bytes)
+	err = authorizeUser(ctx, challenge.UserID.Bytes)
 	if err != nil {
 		ctx.JSON(http.StatusForbidden, errorResponse(err))
 		return

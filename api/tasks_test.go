@@ -257,17 +257,31 @@ func TestCreateTaskAPI(t *testing.T) {
 func TestGetTaskAPI(t *testing.T) {
 	task := randomTask()
 	validUUID := uuid.UUID(task.ID.Bytes).String()
+	taskDayIDPGType := pgtype.UUID{Bytes: task.TaskDayID.Bytes, Valid: true}
+	userID := uuid.New()
 
 	testCases := []struct {
 		name          string
 		taskID        string
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:   "OK",
 			taskID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
+
 				store.EXPECT().
 					GetTask(gomock.Any(), gomock.Eq(task.ID)).
 					Times(1).
@@ -281,6 +295,10 @@ func TestGetTaskAPI(t *testing.T) {
 		{
 			name:   "Bad Request - Invalid UUID",
 			taskID: "invalid-uuid",
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					GetTask(gomock.Any(), gomock.Any()).
@@ -293,6 +311,10 @@ func TestGetTaskAPI(t *testing.T) {
 		{
 			name:   "Not Found",
 			taskID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					GetTask(gomock.Any(), gomock.Eq(task.ID)).
@@ -306,6 +328,10 @@ func TestGetTaskAPI(t *testing.T) {
 		{
 			name:   "Internal Server Error",
 			taskID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					GetTask(gomock.Any(), gomock.Eq(task.ID)).
@@ -334,6 +360,7 @@ func TestGetTaskAPI(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -343,11 +370,14 @@ func TestGetTaskAPI(t *testing.T) {
 func TestUpdateTaskAPI(t *testing.T) {
 	task := randomTask()
 	validUUID := uuid.UUID(task.ID.Bytes).String()
+	taskDayIDPGType := pgtype.UUID{Bytes: task.TaskDayID.Bytes, Valid: true}
+	userID := uuid.UUID(task.TaskDayID.Bytes)
 
 	testCases := []struct {
 		name          string
 		taskID        string
 		body          updateTaskBodyRequest
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -359,6 +389,10 @@ func TestUpdateTaskAPI(t *testing.T) {
 				Description: "Updated Description",
 				Completed:   true,
 				Duration:    90,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.UpdateTaskParams{
@@ -373,6 +407,18 @@ func TestUpdateTaskAPI(t *testing.T) {
 				updatedTask.Title = "Updated Title"
 				updatedTask.Description = pgtype.Text{String: "Updated Description", Valid: true}
 				updatedTask.Completed = pgtype.Bool{Bool: true, Valid: true}
+
+				store.EXPECT().
+					GetTask(gomock.Any(), pgtype.UUID{Bytes: task.ID.Bytes, Valid: true}).
+					Times(1).
+					Return(task, nil)
+
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
 
 				store.EXPECT().
 					UpdateTask(gomock.Any(), gomock.Eq(arg)).
@@ -392,6 +438,10 @@ func TestUpdateTaskAPI(t *testing.T) {
 				Completed:   false,
 				Duration:    90,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				arg := db.UpdateTaskParams{
 					ID:          task.ID,
@@ -407,6 +457,18 @@ func TestUpdateTaskAPI(t *testing.T) {
 				updatedTask.Completed = pgtype.Bool{Bool: false, Valid: true}
 
 				store.EXPECT().
+					GetTask(gomock.Any(), pgtype.UUID{Bytes: task.ID.Bytes, Valid: true}).
+					Times(1).
+					Return(task, nil)
+
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
+
+				store.EXPECT().
 					UpdateTask(gomock.Any(), gomock.Eq(arg)).
 					Times(1).
 					Return(updatedTask, nil)
@@ -419,6 +481,10 @@ func TestUpdateTaskAPI(t *testing.T) {
 			name:   "Bad Request - Invalid JSON",
 			taskID: validUUID,
 			body:   updateTaskBodyRequest{}, // This will be overridden with invalid JSON
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					UpdateTask(gomock.Any(), gomock.Any()).
@@ -435,6 +501,10 @@ func TestUpdateTaskAPI(t *testing.T) {
 				Description: "Updated Description",
 				Completed:   true,
 				Duration:    90,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
@@ -454,7 +524,23 @@ func TestUpdateTaskAPI(t *testing.T) {
 				Completed:   true,
 				Duration:    90,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetTask(gomock.Any(), pgtype.UUID{Bytes: task.ID.Bytes, Valid: true}).
+					Times(1).
+					Return(task, nil)
+
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
+
 				store.EXPECT().
 					UpdateTask(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -494,6 +580,7 @@ func TestUpdateTaskAPI(t *testing.T) {
 
 			req.Header.Set("Content-Type", "application/json")
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -503,17 +590,36 @@ func TestUpdateTaskAPI(t *testing.T) {
 func TestDeleteTaskAPI(t *testing.T) {
 	task := randomTask()
 	validUUID := uuid.UUID(task.ID.Bytes).String()
+	taskDayIDPGType := pgtype.UUID{Bytes: task.TaskDayID.Bytes, Valid: true}
+	userID := uuid.UUID(task.TaskDayID.Bytes)
 
 	testCases := []struct {
 		name          string
 		taskID        string
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStub     func(store *mockDB.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:   "OK",
 			taskID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetTask(gomock.Any(), pgtype.UUID{Bytes: task.ID.Bytes, Valid: true}).
+					Times(1).
+					Return(task, nil)
+
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
+
 				store.EXPECT().
 					DeleteTask(gomock.Any(), gomock.Eq(task.ID)).
 					Times(1).
@@ -526,6 +632,10 @@ func TestDeleteTaskAPI(t *testing.T) {
 		{
 			name:   "Bad Request - Invalid UUID",
 			taskID: "invalid-uuid",
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					DeleteTask(gomock.Any(), gomock.Any()).
@@ -538,7 +648,23 @@ func TestDeleteTaskAPI(t *testing.T) {
 		{
 			name:   "Internal Server Error",
 			taskID: validUUID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, userID, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetTask(gomock.Any(), pgtype.UUID{Bytes: task.ID.Bytes, Valid: true}).
+					Times(1).
+					Return(task, nil)
+
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Times(1).
+					Return(db.TaskDay{
+						UserID: pgtype.UUID{Bytes: userID, Valid: true},
+					}, nil)
+
 				store.EXPECT().
 					DeleteTask(gomock.Any(), gomock.Eq(task.ID)).
 					Times(1).
@@ -566,6 +692,7 @@ func TestDeleteTaskAPI(t *testing.T) {
 			req, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
@@ -575,6 +702,8 @@ func TestDeleteTaskAPI(t *testing.T) {
 func TestListTasksAPI(t *testing.T) {
 	taskDay := randomTaskDay()
 	taskDayID := uuid.UUID(taskDay.ID.Bytes).String()
+	taskDayIDPGType := pgtype.UUID{Bytes: taskDay.ID.Bytes, Valid: true}
+
 	n := 3
 	tasks := make([]db.Task, n)
 	for i := 0; i < n; i++ {
@@ -598,6 +727,10 @@ func TestListTasksAPI(t *testing.T) {
 			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Return(taskDay, nil)
+
+				store.EXPECT().
 					ListTasksByTaskDayId(gomock.Any(), gomock.Eq(taskDay.ID)).
 					Times(1).
 					Return(tasks, nil)
@@ -610,6 +743,10 @@ func TestListTasksAPI(t *testing.T) {
 		{
 			name:      "Bad Request - Invalid Task Day ID",
 			taskDayID: "invalid-uuid",
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, taskDay.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
 				store.EXPECT().
 					ListTasksByTaskDayId(gomock.Any(), gomock.Any()).
@@ -622,7 +759,15 @@ func TestListTasksAPI(t *testing.T) {
 		{
 			name:      "Internal Server Error",
 			taskDayID: taskDayID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker,
+					authorizationTypeBearer, taskDay.UserID.Bytes, time.Minute)
+			},
 			buildStub: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					GetTaskDay(gomock.Any(), gomock.Eq(taskDayIDPGType)).
+					Return(taskDay, nil)
+
 				store.EXPECT().
 					ListTasksByTaskDayId(gomock.Any(), gomock.Eq(taskDay.ID)).
 					Times(1).
@@ -650,6 +795,7 @@ func TestListTasksAPI(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req)
 			tc.checkResponse(t, recorder)
 		})
