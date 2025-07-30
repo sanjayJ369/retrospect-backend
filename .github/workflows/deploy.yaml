@@ -24,6 +24,9 @@ jobs:
         with:
           registry-type: public
 
+      - name: Load aws secrets and store them in app.dev
+        run: aws secretsmanager get-secret-value --secret-id retrospect --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' >> app.env
+
       - name: Build, tag, and push docker image to Amazon ECR Public
         env:
           ECR_REPOSITORY: public.ecr.aws/v0e1e0l3/retrospect
