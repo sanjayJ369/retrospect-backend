@@ -20,6 +20,7 @@ COPY app.env .
 COPY ./db/migration ./migration
 COPY start.sh .
 
+RUN chmod +x /app/start.sh
 CMD [ "/app/main" ]
 ENTRYPOINT [ "/app/start.sh" ]
 
