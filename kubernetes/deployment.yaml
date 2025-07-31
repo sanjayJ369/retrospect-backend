@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retrospect-api-deployment
+  labels:
+    app: retrospect-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: retrospect-api
+  template:
+    metadata:
+      labels:
+        app: retrospect-api
+    spec:
+      imagePullSecrets:
+        - name: retrospect
+      containers:
+        - name: retrospect-api
+          image: sanjayj369/retrospect:latest
+          ports:
+            - containerPort: 8080
