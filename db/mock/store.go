@@ -72,6 +72,21 @@ func (mr *MockStoreMockRecorder) CreateChallengeEntry(ctx, challengeID any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChallengeEntry", reflect.TypeOf((*MockStore)(nil).CreateChallengeEntry), ctx, challengeID)
 }
 
+// CreateSession mocks base method.
+func (m *MockStore) CreateSession(ctx context.Context, arg db.CreateSessionParams) (db.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSession", ctx, arg)
+	ret0, _ := ret[0].(db.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSession indicates an expected call of CreateSession.
+func (mr *MockStoreMockRecorder) CreateSession(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSession", reflect.TypeOf((*MockStore)(nil).CreateSession), ctx, arg)
+}
+
 // CreateTask mocks base method.
 func (m *MockStore) CreateTask(ctx context.Context, arg db.CreateTaskParams) (db.Task, error) {
 	m.ctrl.T.Helper()
@@ -234,6 +249,21 @@ func (m *MockStore) GetChallengeEntry(ctx context.Context, id pgtype.UUID) (db.C
 func (mr *MockStoreMockRecorder) GetChallengeEntry(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChallengeEntry", reflect.TypeOf((*MockStore)(nil).GetChallengeEntry), ctx, id)
+}
+
+// GetSessions mocks base method.
+func (m *MockStore) GetSessions(ctx context.Context, id pgtype.UUID) (db.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSessions", ctx, id)
+	ret0, _ := ret[0].(db.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSessions indicates an expected call of GetSessions.
+func (mr *MockStoreMockRecorder) GetSessions(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessions", reflect.TypeOf((*MockStore)(nil).GetSessions), ctx, id)
 }
 
 // GetTask mocks base method.

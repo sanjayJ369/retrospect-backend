@@ -20,8 +20,10 @@ func TestJWTToken(t *testing.T) {
 	issuedAt := time.Now()
 	expiredAt := time.Now().Add(time.Minute)
 
-	token, err := maker.CreateToken(user, time.Minute)
-	payload, err := maker.VerifyToken(token)
+	token, payload, err := maker.CreateToken(user, time.Minute)
+	require.NotEmpty(t, payload)
+
+	payload, err = maker.VerifyToken(token)
 	require.NoError(t, err)
 	require.Equal(t, user, payload.UserId)
 	require.WithinDuration(t, payload.IssuedAt, issuedAt, time.Second)
@@ -35,8 +37,10 @@ func TestExpiredJWTToken(t *testing.T) {
 
 	user, err := uuid.NewUUID()
 	require.NoError(t, err)
-	token, err := maker.CreateToken(user, -time.Minute)
-	payload, err := maker.VerifyToken(token)
+	token, payload, err := maker.CreateToken(user, -time.Minute)
+	require.NotEmpty(t, payload)
+
+	payload, err = maker.VerifyToken(token)
 	require.Error(t, err)
 	require.Empty(t, payload)
 }

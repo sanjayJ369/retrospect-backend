@@ -142,6 +142,24 @@ CREATE TABLE public.schema_migrations (
 ALTER TABLE public.schema_migrations OWNER TO root;
 
 --
+-- Name: sessions; Type: TABLE; Schema: public; Owner: root
+--
+
+CREATE TABLE public.sessions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    refresh_token character varying NOT NULL,
+    user_agent character varying NOT NULL,
+    client_ip character varying NOT NULL,
+    is_blocked boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    expires_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.sessions OWNER TO root;
+
+--
 -- Name: task_days; Type: TABLE; Schema: public; Owner: root
 --
 
@@ -185,7 +203,8 @@ CREATE TABLE public.users (
     updated_at timestamp without time zone,
     timezone character varying DEFAULT 'UTC'::character varying NOT NULL,
     password_changed_at timestamp with time zone DEFAULT '0001-01-01 00:00:00+00'::timestamp with time zone NOT NULL,
-    hashed_password character varying NOT NULL
+    hashed_password character varying NOT NULL,
+    is_verified boolean DEFAULT false NOT NULL
 );
 
 
@@ -213,6 +232,22 @@ ALTER TABLE ONLY public.challenges
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sessions sessions_user_id_key; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_user_id_key UNIQUE (user_id);
 
 
 --
@@ -325,6 +360,14 @@ ALTER TABLE ONLY public.challenge_entries
 
 ALTER TABLE ONLY public.challenges
     ADD CONSTRAINT challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: sessions sessions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --

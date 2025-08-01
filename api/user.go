@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -111,8 +112,12 @@ type UserLoginRequest struct {
 }
 
 type UserLoginResponse struct {
-	AccessToken string       `json:"access_token"`
-	User        userResponse `json:"user"`
+	SessionId             uuid.UUID    `json:"session_id"`
+	AccessToken           string       `json:"access_token"`
+	AccessTokenExpiresAt  time.Time    `json:"access_token_expires_at"`
+	RefreshToken          string       `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time    `json:"refresh_token_expires_at"`
+	User                  userResponse `json:"user"`
 }
 
 func (s *Server) LoginUser(ctx *gin.Context) {
@@ -145,15 +150,39 @@ func (s *Server) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	tkn, err := s.tokenMaker.CreateToken(userId, s.config.Duration)
+	accessToken, accessPayload, err := s.tokenMaker.CreateToken(userId, s.config.AccessTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, nil)
+		return
+	}
+
+	refreshToken, refreshPayload, err := s.tokenMaker.CreateToken(userId, s.config.RefreshTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, nil)
+		return
+	}
+
+	session, err := s.store.CreateSession(ctx, db.CreateSessionParams{
+		UserID:       user.ID,
+		RefreshToken: refreshToken,
+		UserAgent:    ctx.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+		IsBlocked:    false,
+		ExpiresAt:    pgtype.Timestamp{Time: refreshPayload.ExpiredAt, Valid: true},
+	})
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, nil)
 		return
 	}
 
 	res := UserLoginResponse{
-		AccessToken: tkn,
-		User:        newUserResponse(user),
+		SessionId:             session.ID.Bytes,
+		AccessToken:           accessToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
+		User:                  newUserResponse(user),
 	}
 
 	ctx.JSON(http.StatusOK, res)

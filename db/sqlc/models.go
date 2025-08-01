@@ -44,6 +44,17 @@ type SchemaMigration struct {
 	Dirty   bool  `json:"dirty"`
 }
 
+type Session struct {
+	ID           pgtype.UUID      `json:"id"`
+	UserID       pgtype.UUID      `json:"user_id"`
+	RefreshToken string           `json:"refresh_token"`
+	UserAgent    string           `json:"user_agent"`
+	ClientIp     string           `json:"client_ip"`
+	IsBlocked    bool             `json:"is_blocked"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	ExpiresAt    pgtype.Timestamp `json:"expires_at"`
+}
+
 type Task struct {
 	ID          pgtype.UUID     `json:"id"`
 	TaskDayID   pgtype.UUID     `json:"task_day_id"`
@@ -71,4 +82,5 @@ type User struct {
 	Timezone          string             `json:"timezone"`
 	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
 	HashedPassword    string             `json:"hashed_password"`
+	IsVerified        bool               `json:"is_verified"`
 }

@@ -13,6 +13,7 @@ import (
 type Querier interface {
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (Challenge, error)
 	CreateChallengeEntry(ctx context.Context, challengeID pgtype.UUID) (ChallengeEntry, error)
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error)
 	CreateTaskDay(ctx context.Context, userID pgtype.UUID) (TaskDay, error)
 	// Creates new task_day entries for all users in a given timezone for their "today".
@@ -26,6 +27,7 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id pgtype.UUID) (User, error)
 	GetChallenge(ctx context.Context, id pgtype.UUID) (Challenge, error)
 	GetChallengeEntry(ctx context.Context, id pgtype.UUID) (ChallengeEntry, error)
+	GetSessions(ctx context.Context, id pgtype.UUID) (Session, error)
 	GetTask(ctx context.Context, id pgtype.UUID) (Task, error)
 	GetTaskDay(ctx context.Context, id pgtype.UUID) (TaskDay, error)
 	// Finds all distinct timezones where the current local time is at the beginning of a new day (e.g., 00:00 to 00:59).

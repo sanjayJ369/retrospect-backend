@@ -17,7 +17,7 @@ INSERT INTO users (
 ) VALUES (
   $1, $2, $3
 )
-RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified
 `
 
 type CreateUserParams struct {
@@ -38,6 +38,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Timezone,
 		&i.PasswordChangedAt,
 		&i.HashedPassword,
+		&i.IsVerified,
 	)
 	return i, err
 }
@@ -45,7 +46,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 const deleteUser = `-- name: DeleteUser :one
 DELETE FROM users
 WHERE id = $1
-RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) {
@@ -60,12 +61,13 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) 
 		&i.Timezone,
 		&i.PasswordChangedAt,
 		&i.HashedPassword,
+		&i.IsVerified,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password FROM users
+SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -81,12 +83,13 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 		&i.Timezone,
 		&i.PasswordChangedAt,
 		&i.HashedPassword,
+		&i.IsVerified,
 	)
 	return i, err
 }
 
 const getUserByName = `-- name: GetUserByName :one
-SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password FROM users 
+SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified FROM users 
 WHERE name = $1 LIMIT 1
 `
 
@@ -102,12 +105,13 @@ func (q *Queries) GetUserByName(ctx context.Context, name string) (User, error) 
 		&i.Timezone,
 		&i.PasswordChangedAt,
 		&i.HashedPassword,
+		&i.IsVerified,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password FROM users
+SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified FROM users
 ORDER BY name
 LIMIT $1
 OFFSET $2
@@ -136,6 +140,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.Timezone,
 			&i.PasswordChangedAt,
 			&i.HashedPassword,
+			&i.IsVerified,
 		); err != nil {
 			return nil, err
 		}
@@ -154,7 +159,7 @@ SET
   updated_at = NOW()
 WHERE
   id = $1
-RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified
 `
 
 type UpdateUserEmailParams struct {
@@ -174,6 +179,7 @@ func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams
 		&i.Timezone,
 		&i.PasswordChangedAt,
 		&i.HashedPassword,
+		&i.IsVerified,
 	)
 	return i, err
 }
@@ -185,7 +191,7 @@ SET
   updated_at = NOW()
 WHERE
   id = $1
-RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified
 `
 
 type UpdateUserNameParams struct {
@@ -205,6 +211,7 @@ func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) 
 		&i.Timezone,
 		&i.PasswordChangedAt,
 		&i.HashedPassword,
+		&i.IsVerified,
 	)
 	return i, err
 }
@@ -216,7 +223,7 @@ SET
   updated_at = NOW()
 WHERE
   id = $1
-RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified
 `
 
 type UpdateUserTimezoneParams struct {
@@ -236,6 +243,7 @@ func (q *Queries) UpdateUserTimezone(ctx context.Context, arg UpdateUserTimezone
 		&i.Timezone,
 		&i.PasswordChangedAt,
 		&i.HashedPassword,
+		&i.IsVerified,
 	)
 	return i, err
 }
