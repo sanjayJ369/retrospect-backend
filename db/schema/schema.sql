@@ -243,14 +243,6 @@ ALTER TABLE ONLY public.sessions
 
 
 --
--- Name: sessions sessions_user_id_key; Type: CONSTRAINT; Schema: public; Owner: root
---
-
-ALTER TABLE ONLY public.sessions
-    ADD CONSTRAINT sessions_user_id_key UNIQUE (user_id);
-
-
---
 -- Name: task_days task_days_pkey; Type: CONSTRAINT; Schema: public; Owner: root
 --
 

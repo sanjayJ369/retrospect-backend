@@ -163,6 +163,7 @@ func (s *Server) LoginUser(ctx *gin.Context) {
 	}
 
 	session, err := s.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           pgtype.UUID{Bytes: refreshPayload.ID, Valid: true},
 		UserID:       user.ID,
 		RefreshToken: refreshToken,
 		UserAgent:    ctx.Request.UserAgent(),
