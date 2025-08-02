@@ -1,0 +1,153 @@
+Project retrospect {
+  database_type: 'PostgreSQL'
+  Note: '''
+    #Retrospect Database
+  '''
+}
+
+Table users as U {
+  id uuid [pk, default: `gen_random_uuid()`] 
+  email varchar [not null, unique]
+  name varchar [not null]
+  password_changed_at timestamptz [not null, default: `0001-01-01 00:00:00Z`]
+  hashed_password varchar [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp 
+  timezone varchar [not null, default: 'UTC'] // Added timezone column
+
+  Indexes {
+    id
+  }
+}
+
+Table challenges as C {
+  id uuid [pk, default: `gen_random_uuid()`]
+  title varchar [not null]
+  user_id uuid [ref: > U.id]
+  description varchar
+  start_date date [not null, default: `now()::date`] 
+  end_date date 
+  active boolean [default: true] 
+  created_at timestamp [not null, default: `now()`]
+
+  indexes {
+    start_date
+    user_id
+  }
+}
+
+Table challenge_entries {
+  id uuid [pk, default: `gen_random_uuid()`] 
+  challenge_id uuid [ref: > C.id]
+  date date [default: `now()::date`]
+  completed boolean [default: False]
+  created_at timestamp [default: `now()`]
+
+  indexes {
+    date 
+    challenge_id 
+  }
+}
+
+Table task_days as TD {
+  id uuid [pk, default: `gen_random_uuid()`] 
+  user_id uuid [ref :> U.id]
+  date date [unique, default: `now()::date`]
+  count integer [default: 0]
+  total_duration interval [default: `INTERVAL '0 seconds'`] // Corrected: interval type and default
+  completed_duration interval [default: `INTERVAL '0 seconds'`]
+  indexes {
+    date
+    user_id
+  }
+}
+
+
+Table tasks {
+  id uuid [pk, default: `gen_random_uuid()`] 
+  task_day_id uuid [ref: > TD.id]
+  title varchar [not null]
+  description varchar 
+  duration intervel [not null]
+  completed boolean [default: False]
+
+  indexes {
+    task_day_id 
+  }
+}
+
+/* 
+-- postgressql syntaxl for createing a view
+
+CREATE OR REPLACE VIEW current_challenges_view AS
+SELECT
+  c.id,
+  c.title,
+  c.user_id,
+  c.description,
+  c.start_date,
+  c.end_date,
+  c.active,
+  c.created_at,
+  -- Calculate duration dynamically based on your provided logic
+  (CASE
+    WHEN c.end_date IS NOT NULL THEN (c.end_date - c.start_date) + 1
+    ELSE (CURRENT_DATE - c.start_date) + 1
+  END) AS duration
+FROM
+  challenges AS c;
+
+
+CREATE OR REPLACE FUNCTION update_task_day_aggregates()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Handle INSERT operations (a new task is created)
+    IF (TG_OP = 'INSERT') THEN
+        UPDATE task_days
+        SET
+            count = count + 1,
+            total_duration = total_duration + NEW.duration,
+            -- Add to completed_duration only if the new task is already marked complete
+            completed_duration = completed_duration + (CASE WHEN NEW.completed THEN NEW.duration ELSE INTERVAL '0' END)
+        WHERE id = NEW.task_day_id;
+        RETURN NEW;
+    END IF;
+
+    -- Handle UPDATE operations (a task is modified)
+    IF (TG_OP = 'UPDATE') THEN
+        UPDATE task_days
+        SET
+            -- Adjust total_duration by the difference in the task's duration
+            total_duration = total_duration - OLD.duration + NEW.duration,
+            -- Adjust completed_duration based on the old and new completion status and duration
+            completed_duration = completed_duration
+                                 - (CASE WHEN OLD.completed THEN OLD.duration ELSE INTERVAL '0' END) -- Subtract old completed value
+                                 + (CASE WHEN NEW.completed THEN NEW.duration ELSE INTERVAL '0' END) -- Add new completed value
+        WHERE id = NEW.task_day_id;
+        RETURN NEW;
+    END IF;
+
+    -- Handle DELETE operations (a task is removed)
+    IF (TG_OP = 'DELETE') THEN
+        UPDATE task_days
+        SET
+            count = count - 1,
+            total_duration = total_duration - OLD.duration,
+            -- Subtract from completed_duration only if the deleted task was complete
+            completed_duration = completed_duration - (CASE WHEN OLD.completed THEN OLD.duration ELSE INTERVAL '0' END)
+        WHERE id = OLD.task_day_id;
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+
+
+-- postgressql synatax for cascading deletes 
+
+ALTER TABLE "challenges" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE;
+ALTER TABLE "tasks" ADD FOREIGN KEY ("task_day_id") REFERENCES "task_days" ("id") ON DELETE CASCADE;
+
+-- postgressql syntax for adding unique constraint for task_days
+ALTER TABLE "task_days" ADD CONSTRAINT "user_id_date_unique" UNIQUE ("user_id", "date");
+*/
