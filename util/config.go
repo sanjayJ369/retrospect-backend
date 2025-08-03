@@ -13,6 +13,8 @@ type Config struct {
 	SymmetricKey         string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	AccessTokenDuration  time.Duration `mapstructure:"TOKEN_DURATION"`
 	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_SESSION_DURATION"`
+	MailgunDomain        string        `mapstructure:"EMAIL_DOMAIN"`
+	MailgunAPIKEY        string        `mapstructure:"MAILGUN_API_KEY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -24,6 +26,10 @@ func LoadConfig(path string) (config Config, err error) {
 	if err = viper.ReadInConfig(); err != nil {
 		return
 	}
+
+	viper.SetConfigName("secrets")
+	_ = viper.MergeInConfig()
+
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		return
