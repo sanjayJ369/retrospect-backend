@@ -46,6 +46,11 @@ func (s *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
+	// if err := mail.SendVerificationMailFromMailgun(user.ID.Bytes, user.Email, s.tokenMaker, s.config.AccessTokenDuration); err != nil {
+	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	// 	return
+	// }
+
 	ctx.JSON(http.StatusCreated, newUserResponse(user))
 }
 
