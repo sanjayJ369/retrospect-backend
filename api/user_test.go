@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	mockDB "github.com/sanjayj369/retrospect-backend/db/mock"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	mockmail "github.com/sanjayj369/retrospect-backend/mail/mock"
 	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 	"github.com/stretchr/testify/require"
@@ -42,17 +43,23 @@ func TestCreateUserAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		userDetails   *bytes.Reader
-		buildStub     func(store *mockDB.MockStore)
+		buildStub     func(store *mockDB.MockStore, mail *mockmail.MockEmailSender)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:        "OK",
 			userDetails: validUserDetails,
-			buildStub: func(store *mockDB.MockStore) {
+			buildStub: func(store *mockDB.MockStore, mail *mockmail.MockEmailSender) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(createUserParams, createUserReq.Password)).
 					Times(1).
 					Return(randomUser(), nil)
+
+				mail.EXPECT().
+					SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(nil)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusCreated, recorder.Code)
@@ -61,7 +68,7 @@ func TestCreateUserAPI(t *testing.T) {
 		{
 			name:        "BadRequest",
 			userDetails: invalidUserDetails,
-			buildStub: func(store *mockDB.MockStore) {
+			buildStub: func(store *mockDB.MockStore, mail *mockmail.MockEmailSender) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), gomock.Any()).
 					Times(0)
@@ -73,7 +80,7 @@ func TestCreateUserAPI(t *testing.T) {
 		{
 			name:        "InternalServerError",
 			userDetails: validUserDetails,
-			buildStub: func(store *mockDB.MockStore) {
+			buildStub: func(store *mockDB.MockStore, mail *mockmail.MockEmailSender) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(createUserParams, createUserReq.Password)).
 					Times(1).
@@ -92,10 +99,12 @@ func TestCreateUserAPI(t *testing.T) {
 			defer ctrl.Finish()
 
 			store := mockDB.NewMockStore(ctrl)
-			tc.buildStub(store)
+			emailSender := mockmail.NewMockEmailSender(ctrl)
+
+			tc.buildStub(store, emailSender)
 			tc.userDetails.Seek(0, 0)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, emailSender)
 			recorder := httptest.NewRecorder()
 
 			url := "/users"
@@ -195,9 +204,10 @@ func TestGetUserAPI(t *testing.T) {
 			defer ctrl.Finish()
 
 			store := mockDB.NewMockStore(ctrl)
+
 			tc.buildStub(store)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, nil)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/users/%s", tc.userId)
@@ -391,10 +401,11 @@ func TestLoginUserAPI(t *testing.T) {
 			defer ctrl.Finish()
 
 			store := mockDB.NewMockStore(ctrl)
+
 			tc.buildStub(store)
 			tc.loginDetails.Seek(0, 0)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, nil)
 			recorder := httptest.NewRecorder()
 
 			url := "/users/login"

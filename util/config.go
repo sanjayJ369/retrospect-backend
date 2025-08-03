@@ -15,6 +15,7 @@ type Config struct {
 	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_SESSION_DURATION"`
 	MailgunDomain        string        `mapstructure:"EMAIL_DOMAIN"`
 	MailgunAPIKEY        string        `mapstructure:"MAILGUN_API_KEY"`
+	Domain               string        `mapstructure:"DOMAIN"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

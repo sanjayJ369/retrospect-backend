@@ -7,6 +7,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/sanjayj369/retrospect-backend/api"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	mail "github.com/sanjayj369/retrospect-backend/mail"
+
 	"github.com/sanjayj369/retrospect-backend/util"
 )
 
@@ -21,7 +23,12 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
-	server, err := api.NewServer(config, store)
+	mailSender, err := mail.NewMailgunSender()
+	if err != nil {
+		log.Fatal("cannot create email sender, err:", err)
+	}
+
+	server, err := api.NewServer(config, store, mailSender)
 	if err != nil {
 		log.Fatal("cannot create server, err:", err)
 	}

@@ -5,27 +5,34 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	"github.com/sanjayj369/retrospect-backend/mail"
 	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 )
 
 type Server struct {
-	config     util.Config
-	store      db.Store
-	tokenMaker token.Maker
-	router     *gin.Engine
+	config      util.Config
+	store       db.Store
+	tokenMaker  token.Maker
+	router      *gin.Engine
+	emailSender mail.EmailSender
 }
 
-func NewServer(config util.Config, store db.Store) (*Server, error) {
+func NewServer(config util.Config, store db.Store, emailSender mail.EmailSender) (*Server, error) {
 	maker, err := token.NewPasetoMaker(config.SymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
+	if err != nil {
+		return nil, fmt.Errorf("cannot create email sender: %w", err)
+	}
+
 	server := &Server{
-		config:     config,
-		store:      store,
-		tokenMaker: maker,
+		config:      config,
+		store:       store,
+		tokenMaker:  maker,
+		emailSender: emailSender,
 	}
 
 	setupRoutes(server)

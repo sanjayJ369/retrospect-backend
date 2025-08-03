@@ -40,5 +40,6 @@ server:
 
 mock:
 	mockgen -package mockDB -destination ./db/mock/store.go github.com/sanjayj369/retrospect-backend/db/sqlc Store
+	mockgen -package mockmail -destination mail/mock/sender.go github.com/sanjayj369/retrospect-backend/mail EmailSender
 
 .PHONY: postgres createdb dropdb migrateup migratedown dump_schema sqlc test server mock db_docs

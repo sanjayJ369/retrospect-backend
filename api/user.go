@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	"github.com/sanjayj369/retrospect-backend/mail"
 	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 )
@@ -46,10 +47,11 @@ func (s *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	// if err := mail.SendVerificationMailFromMailgun(user.ID.Bytes, user.Email, s.tokenMaker, s.config.AccessTokenDuration); err != nil {
-	// 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	// 	return
-	// }
+	endpoint := fmt.Sprintf("https://%s/users/verify-email", s.config.Domain)
+	if err := mail.SendVerificationMail(s.emailSender, user.ID.Bytes, user.Email, s.tokenMaker, s.config.AccessTokenDuration, endpoint, "../mail/email_verification.html"); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
 	ctx.JSON(http.StatusCreated, newUserResponse(user))
 }

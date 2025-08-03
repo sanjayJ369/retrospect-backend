@@ -228,7 +228,7 @@ func TestCreateTaskAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, nil)
 			recorder := httptest.NewRecorder()
 
 			// Prepare request body
@@ -353,7 +353,7 @@ func TestGetTaskAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, nil)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/tasks/%s", tc.taskID)
@@ -561,7 +561,7 @@ func TestUpdateTaskAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, nil)
 			recorder := httptest.NewRecorder()
 
 			// Prepare request body
@@ -685,7 +685,7 @@ func TestDeleteTaskAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, nil)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/tasks/%s", tc.taskID)
@@ -788,7 +788,7 @@ func TestListTasksAPI(t *testing.T) {
 			store := mockDB.NewMockStore(ctrl)
 			tc.buildStub(store)
 
-			server := newTestServer(t, store)
+			server := newTestServer(t, store, nil)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/tasks?task_day_id=%s", tc.taskDayID)
