@@ -1,11 +1,16 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sanjayj369/retrospect-backend/ratelimiter"
 	"github.com/sanjayj369/retrospect-backend/token"
 )
 
@@ -14,6 +19,46 @@ const (
 	authorizationTypeBearer = "bearer"
 	authorizationPayloadKey = "authorization_payload"
 )
+
+func ratelimiterMiddleware(limiter ratelimiter.RateLimiter, duration time.Duration) gin.HandlerFunc {
+	type emailRequest struct {
+		Email string `json:"email" binding:"email"`
+	}
+
+	return func(ctx *gin.Context) {
+		key := ctx.ClientIP()
+
+		allowed, err := limiter.Allow(key, duration)
+		if err != nil || !allowed {
+			ctx.AbortWithStatusJSON(http.StatusTooManyRequests, errorResponse(fmt.Errorf("rate limit exceeded")))
+			return
+		}
+
+		var bodyBytes []byte
+		if ctx.Request.Body != nil {
+			bodyBytes, _ = io.ReadAll(ctx.Request.Body)
+		}
+
+		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		var req emailRequest
+		if err := json.Unmarshal(bodyBytes, &req); err == nil {
+			if req.Email != "" {
+				allowed, err := limiter.Allow(req.Email, duration)
+				if err != nil {
+					ctx.AbortWithStatusJSON(http.StatusInternalServerError, errorResponse(fmt.Errorf("internal server error")))
+					return
+				}
+				if !allowed {
+					ctx.AbortWithStatusJSON(http.StatusTooManyRequests, errorResponse(fmt.Errorf("rate limit exceeded for this email")))
+					return
+				}
+			}
+		}
+
+		ctx.Next()
+	}
+}
 
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {

@@ -17,6 +17,8 @@ type Config struct {
 	MailgunAPIKEY        string        `mapstructure:"MAILGUN_API_KEY"`
 	Domain               string        `mapstructure:"DOMAIN"`
 	TemplatesDir         string        `mapstructure:"TEMPLATES_DIR"`
+	RedisURL             string        `mapstructure:"REDIS_URL"`
+	RatelimitDuration    time.Duration `mapstructure:"RATELIMIT_DURATION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

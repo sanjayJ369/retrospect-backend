@@ -8,6 +8,7 @@ import (
 	"github.com/sanjayj369/retrospect-backend/api"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
 	mail "github.com/sanjayj369/retrospect-backend/mail"
+	"github.com/sanjayj369/retrospect-backend/ratelimiter"
 
 	"github.com/sanjayj369/retrospect-backend/util"
 )
@@ -28,7 +29,9 @@ func main() {
 		log.Fatal("cannot create email sender, err:", err)
 	}
 
-	server, err := api.NewServer(config, store, mailSender)
+	redisRateLimiter := ratelimiter.NewRedisRateLimiter(config.RedisURL)
+
+	server, err := api.NewServer(config, store, mailSender, redisRateLimiter)
 	if err != nil {
 		log.Fatal("cannot create server, err:", err)
 	}

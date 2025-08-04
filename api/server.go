@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
 	"github.com/sanjayj369/retrospect-backend/mail"
+	"github.com/sanjayj369/retrospect-backend/ratelimiter"
 	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 )
@@ -16,9 +17,10 @@ type Server struct {
 	tokenMaker  token.Maker
 	router      *gin.Engine
 	emailSender mail.EmailSender
+	rateLimiter ratelimiter.RateLimiter
 }
 
-func NewServer(config util.Config, store db.Store, emailSender mail.EmailSender) (*Server, error) {
+func NewServer(config util.Config, store db.Store, emailSender mail.EmailSender, rateLimiter ratelimiter.RateLimiter) (*Server, error) {
 	maker, err := token.NewPasetoMaker(config.SymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
@@ -29,6 +31,7 @@ func NewServer(config util.Config, store db.Store, emailSender mail.EmailSender)
 		store:       store,
 		tokenMaker:  maker,
 		emailSender: emailSender,
+		rateLimiter: rateLimiter,
 	}
 
 	setupRoutes(server)
@@ -53,7 +56,12 @@ func setupRoutes(server *Server) {
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.LoginUser)
 	router.POST("/tokens/renew_access", server.RenewAccessToken)
-	router.POST("/users/verify-email", server.VerifyEmail)
+
+	// rate limiting middleware
+	rateLimited := router.Group("/").
+		Use(ratelimiterMiddleware(server.rateLimiter,
+			server.config.RatelimitDuration))
+	rateLimited.POST("/users/verify-email", server.VerifyEmail)
 
 	// authorized routers
 	authRouter := router.Group("/").Use(authMiddleware(server.tokenMaker))
