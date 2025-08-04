@@ -9,7 +9,10 @@ import (
 )
 
 var (
-	ErrInvalidToken = errors.New("token is invalid")
+	ErrInvalidToken      = errors.New("token is invalid")
+	PurposeLogin         = "login"
+	PurposeVerifyEmail   = "verify_email"
+	PurposeResetPassword = "reset_password"
 )
 
 type Payload struct {
@@ -17,9 +20,10 @@ type Payload struct {
 	UserId    uuid.UUID `json:"user_id"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
+	Purpose   string    `json:"purpose"`
 }
 
-func NewPayLoad(userId uuid.UUID, duration time.Duration) (*Payload, error) {
+func NewPayLoad(userId uuid.UUID, duration time.Duration, purpose string) (*Payload, error) {
 	tokenId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -30,6 +34,7 @@ func NewPayLoad(userId uuid.UUID, duration time.Duration) (*Payload, error) {
 		UserId:    userId,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
+		Purpose:   purpose,
 	}
 
 	return &payload, nil

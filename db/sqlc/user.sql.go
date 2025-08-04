@@ -184,6 +184,38 @@ func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams
 	return i, err
 }
 
+const updateUserIsVerified = `-- name: UpdateUserIsVerified :one
+UPDATE users
+SET
+  is_verified = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
+RETURNING id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified
+`
+
+type UpdateUserIsVerifiedParams struct {
+	ID         pgtype.UUID `json:"id"`
+	IsVerified bool        `json:"is_verified"`
+}
+
+func (q *Queries) UpdateUserIsVerified(ctx context.Context, arg UpdateUserIsVerifiedParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserIsVerified, arg.ID, arg.IsVerified)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
+		&i.IsVerified,
+	)
+	return i, err
+}
+
 const updateUserName = `-- name: UpdateUserName :one
 UPDATE users
 SET

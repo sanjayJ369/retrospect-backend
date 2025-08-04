@@ -26,11 +26,7 @@ type MailgunSender struct {
 	sender string
 }
 
-func NewMailgunSender() (EmailSender, error) {
-	config, err := util.LoadConfig("..")
-	if err != nil {
-		return nil, fmt.Errorf("failed to load config: %w", err)
-	}
+func NewMailgunSender(config util.Config) (EmailSender, error) {
 	mg := mailgun.NewMailgun(config.MailgunAPIKEY)
 
 	return &MailgunSender{

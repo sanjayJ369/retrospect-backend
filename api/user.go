@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
-	"github.com/sanjayj369/retrospect-backend/mail"
 	"github.com/sanjayj369/retrospect-backend/token"
 	"github.com/sanjayj369/retrospect-backend/util"
 )
@@ -48,7 +47,14 @@ func (s *Server) createUser(ctx *gin.Context) {
 	}
 
 	endpoint := fmt.Sprintf("https://%s/users/verify-email", s.config.Domain)
-	if err := mail.SendVerificationMail(s.emailSender, user.ID.Bytes, user.Email, s.tokenMaker, s.config.AccessTokenDuration, endpoint, "../mail/email_verification.html"); err != nil {
+	emailTemplate := fmt.Sprintf("%s/email_verification.html", s.config.TemplatesDir)
+	if err := SendVerificationMail(
+		s.emailSender,
+		user.ID.Bytes,
+		user.Email,
+		s.tokenMaker,
+		s.config.AccessTokenDuration,
+		endpoint, emailTemplate); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -157,13 +163,13 @@ func (s *Server) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessPayload, err := s.tokenMaker.CreateToken(userId, s.config.AccessTokenDuration)
+	accessToken, accessPayload, err := s.tokenMaker.CreateToken(userId, s.config.AccessTokenDuration, token.PurposeLogin)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, nil)
 		return
 	}
 
-	refreshToken, refreshPayload, err := s.tokenMaker.CreateToken(userId, s.config.RefreshTokenDuration)
+	refreshToken, refreshPayload, err := s.tokenMaker.CreateToken(userId, s.config.RefreshTokenDuration, token.PurposeLogin)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, nil)
 		return

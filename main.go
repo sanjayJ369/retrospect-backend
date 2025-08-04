@@ -23,7 +23,7 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
-	mailSender, err := mail.NewMailgunSender()
+	mailSender, err := mail.NewMailgunSender(config)
 	if err != nil {
 		log.Fatal("cannot create email sender, err:", err)
 	}
@@ -32,7 +32,6 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot create server, err:", err)
 	}
-
 	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server, err:", err)

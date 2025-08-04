@@ -1,7 +1,10 @@
 package mail
 
 // func TestMailgunSender(t *testing.T) {
-// 	sender, err := NewMailgunSender()
+// 	config, err := util.LoadConfig("..")
+// 	require.NoError(t, err)
+// 	fmt.Println(config)
+// 	sender, err := NewMailgunSender(config)
 // 	require.NoError(t, err)
 
 // 	subject := "hi this is a test :)"

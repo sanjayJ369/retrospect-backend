@@ -15,6 +15,7 @@ WORKDIR /app
 
 COPY --from=builder /app/main .
 COPY --from=builder /go/bin/migrate .
+COPY --from=builder /app/templates ./templates
 
 COPY app.env .
 COPY ./db/migration ./migration

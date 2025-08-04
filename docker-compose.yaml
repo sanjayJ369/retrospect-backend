@@ -20,8 +20,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8080:8080
+    env_file:
+      - .env
     environment:
       - DB_SOURCE=postgresql://root:root@postgres:5432/retrospect?sslmode=disable
+      - GIN_MODE=release
     depends_on:
       postgres:
         condition: service_healthy

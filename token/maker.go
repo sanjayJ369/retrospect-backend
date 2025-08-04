@@ -7,6 +7,6 @@ import (
 )
 
 type Maker interface {
-	CreateToken(userId uuid.UUID, duration time.Duration) (string, *Payload, error)
+	CreateToken(userId uuid.UUID, duration time.Duration, purpose string) (string, *Payload, error)
 	VerifyToken(tkn string) (*Payload, error)
 }

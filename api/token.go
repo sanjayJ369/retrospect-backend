@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
+	"github.com/sanjayj369/retrospect-backend/token"
 )
 
 type renewAccessRequest struct {
@@ -70,13 +71,13 @@ func (s *Server) RenewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessPayload, err := s.tokenMaker.CreateToken(session.UserID.Bytes, s.config.AccessTokenDuration)
+	accessToken, accessPayload, err := s.tokenMaker.CreateToken(session.UserID.Bytes, s.config.AccessTokenDuration, token.PurposeLogin)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, nil)
 		return
 	}
 
-	refreshToken, refreshPayload, err := s.tokenMaker.CreateToken(session.UserID.Bytes, s.config.RefreshTokenDuration)
+	refreshToken, refreshPayload, err := s.tokenMaker.CreateToken(session.UserID.Bytes, s.config.RefreshTokenDuration, token.PurposeLogin)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, nil)
 		return

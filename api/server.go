@@ -24,10 +24,6 @@ func NewServer(config util.Config, store db.Store, emailSender mail.EmailSender)
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("cannot create email sender: %w", err)
-	}
-
 	server := &Server{
 		config:      config,
 		store:       store,
@@ -57,6 +53,7 @@ func setupRoutes(server *Server) {
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.LoginUser)
 	router.POST("/tokens/renew_access", server.RenewAccessToken)
+	router.POST("/users/verify-email", server.VerifyEmail)
 
 	// authorized routers
 	authRouter := router.Group("/").Use(authMiddleware(server.tokenMaker))

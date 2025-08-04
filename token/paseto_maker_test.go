@@ -20,7 +20,7 @@ func TestPasteoToken(t *testing.T) {
 	issuedAt := time.Now()
 	expiredAt := time.Now().Add(time.Minute)
 
-	token, payload, err := maker.CreateToken(user, time.Minute)
+	token, payload, err := maker.CreateToken(user, time.Minute, "test")
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, payload)
@@ -39,7 +39,7 @@ func TestExpiredPasetoToken(t *testing.T) {
 
 	user, err := uuid.NewUUID()
 	require.NoError(t, err)
-	token, payload, err := maker.CreateToken(user, -time.Minute)
+	token, payload, err := maker.CreateToken(user, -time.Minute, "test")
 	require.NotEmpty(t, payload)
 
 	payload, err = maker.VerifyToken(token)

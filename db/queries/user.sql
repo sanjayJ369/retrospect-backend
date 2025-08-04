@@ -47,8 +47,16 @@ WHERE
   id = $1
 RETURNING *;
 
-
 -- name: DeleteUser :one
 DELETE FROM users
 WHERE id = $1
+RETURNING *;
+
+-- name: UpdateUserIsVerified :one
+UPDATE users
+SET
+  is_verified = $2,
+  updated_at = NOW()
+WHERE
+  id = $1
 RETURNING *;

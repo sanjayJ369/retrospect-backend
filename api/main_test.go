@@ -17,6 +17,7 @@ func newTestServer(t *testing.T, store db.Store, mailSender *mockmail.MockEmailS
 	config := util.Config{
 		SymmetricKey:        util.GetRandomString(32),
 		AccessTokenDuration: time.Minute * 15,
+		TemplatesDir:        "../templates",
 	}
 
 	server, err := NewServer(config, store, mailSender)
