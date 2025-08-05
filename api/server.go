@@ -54,15 +54,17 @@ func setupRoutes(server *Server) {
 
 	// user routes
 	router.POST("/users", server.createUser)
-	router.POST("/users/login", server.LoginUser)
-	router.POST("/tokens/renew_access", server.RenewAccessToken)
+	router.POST("/users/login", server.loginUser)
+	router.POST("/tokens/renew_access", server.renewAccessToken)
+	router.GET("/users/reset-password", server.resetPassword)
 
 	// rate limiting middleware
 	rateLimited := router.Group("/").Use(ratelimiterMiddleware(
 		server.rateLimiter,
 		server.config.RatelimitDuration))
-	rateLimited.POST("/users/verify-email", server.VerifyEmail)
-	rateLimited.POST("/users/resend-verification", server.ResendVerificationEmail)
+	rateLimited.POST("/users/verify-email", server.verifyEmail)
+	rateLimited.POST("/users/resend-verification", server.resendVerificationEmail)
+	rateLimited.POST("/users/forgot-password", server.forgotPassword)
 
 	// authorized routers
 	authRouter := router.Group("/").Use(authMiddleware(server.tokenMaker))

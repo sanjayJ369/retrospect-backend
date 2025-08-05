@@ -42,6 +42,15 @@ WHERE
   id = $1
 RETURNING *;
 
+-- name: UpdateUserHashedPassword :exec
+UPDATE users
+SET
+  hashed_password = $2,
+  updated_at = NOW(),
+  password_changed_at = NOW()
+WHERE
+  id = $1;
+
 -- name: UpdateUserTimezone :one
 UPDATE users
 SET

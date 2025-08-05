@@ -21,7 +21,7 @@ type ResendVerificationEmailRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-func (s *Server) ResendVerificationEmail(ctx *gin.Context) {
+func (s *Server) resendVerificationEmail(ctx *gin.Context) {
 	var req ResendVerificationEmailRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -95,7 +95,7 @@ type VerifyEmailRequest struct {
 	Token string `json:"token" binding:"required"`
 }
 
-func (s *Server) VerifyEmail(ctx *gin.Context) {
+func (s *Server) verifyEmail(ctx *gin.Context) {
 	var req VerifyEmailRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

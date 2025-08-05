@@ -611,6 +611,20 @@ func (mr *MockStoreMockRecorder) UpdateUserEmail(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserEmail", reflect.TypeOf((*MockStore)(nil).UpdateUserEmail), ctx, arg)
 }
 
+// UpdateUserHashedPassword mocks base method.
+func (m *MockStore) UpdateUserHashedPassword(ctx context.Context, arg db.UpdateUserHashedPasswordParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserHashedPassword", ctx, arg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserHashedPassword indicates an expected call of UpdateUserHashedPassword.
+func (mr *MockStoreMockRecorder) UpdateUserHashedPassword(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserHashedPassword", reflect.TypeOf((*MockStore)(nil).UpdateUserHashedPassword), ctx, arg)
+}
+
 // UpdateUserIsVerified mocks base method.
 func (m *MockStore) UpdateUserIsVerified(ctx context.Context, arg db.UpdateUserIsVerifiedParams) (db.User, error) {
 	m.ctrl.T.Helper()

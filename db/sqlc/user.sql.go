@@ -206,6 +206,26 @@ func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams
 	return i, err
 }
 
+const updateUserHashedPassword = `-- name: UpdateUserHashedPassword :exec
+UPDATE users
+SET
+  hashed_password = $2,
+  updated_at = NOW(),
+  password_changed_at = NOW()
+WHERE
+  id = $1
+`
+
+type UpdateUserHashedPasswordParams struct {
+	ID             pgtype.UUID `json:"id"`
+	HashedPassword string      `json:"hashed_password"`
+}
+
+func (q *Queries) UpdateUserHashedPassword(ctx context.Context, arg UpdateUserHashedPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserHashedPassword, arg.ID, arg.HashedPassword)
+	return err
+}
+
 const updateUserIsVerified = `-- name: UpdateUserIsVerified :one
 UPDATE users
 SET

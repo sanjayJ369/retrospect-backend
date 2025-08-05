@@ -54,6 +54,7 @@ type Querier interface {
 	UpdateChallengeTitle(ctx context.Context, arg UpdateChallengeTitleParams) (Challenge, error)
 	UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error)
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error)
+	UpdateUserHashedPassword(ctx context.Context, arg UpdateUserHashedPasswordParams) error
 	UpdateUserIsVerified(ctx context.Context, arg UpdateUserIsVerifiedParams) (User, error)
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (User, error)
 	UpdateUserTimezone(ctx context.Context, arg UpdateUserTimezoneParams) (User, error)

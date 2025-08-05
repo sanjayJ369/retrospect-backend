@@ -134,7 +134,7 @@ type UserLoginResponse struct {
 	User                  userResponse `json:"user"`
 }
 
-func (s *Server) LoginUser(ctx *gin.Context) {
+func (s *Server) loginUser(ctx *gin.Context) {
 	var req UserLoginRequest
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
