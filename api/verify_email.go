@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,44 @@ import (
 	mail "github.com/sanjayj369/retrospect-backend/mail"
 	"github.com/sanjayj369/retrospect-backend/token"
 )
+
+type ResendVerificationEmailRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+func (s *Server) ResendVerificationEmail(ctx *gin.Context) {
+	var req ResendVerificationEmailRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	user, err := s.store.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+		return
+	}
+
+	if user.IsVerified {
+		ctx.JSON(http.StatusOK, gin.H{"message": "Email already verified"})
+		return
+	}
+
+	endpoint := fmt.Sprintf("https://%s/users/verify-email", s.config.Domain)
+	emailTemplate := filepath.Join(s.config.TemplatesDir, "email_verification.html")
+	if err := SendVerificationMail(
+		s.emailSender,
+		user.ID.Bytes,
+		user.Email,
+		s.tokenMaker,
+		s.config.AccessTokenDuration,
+		endpoint, emailTemplate); err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Verification email sent successfully"})
+}
 
 func SendVerificationMail(
 	sender mail.EmailSender,

@@ -88,6 +88,28 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 	return i, err
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified FROM users
+WHERE email = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+		&i.PasswordChangedAt,
+		&i.HashedPassword,
+		&i.IsVerified,
+	)
+	return i, err
+}
+
 const getUserByName = `-- name: GetUserByName :one
 SELECT id, email, name, created_at, updated_at, timezone, password_changed_at, hashed_password, is_verified FROM users 
 WHERE name = $1 LIMIT 1

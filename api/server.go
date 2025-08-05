@@ -58,10 +58,11 @@ func setupRoutes(server *Server) {
 	router.POST("/tokens/renew_access", server.RenewAccessToken)
 
 	// rate limiting middleware
-	rateLimited := router.Group("/").
-		Use(ratelimiterMiddleware(server.rateLimiter,
-			server.config.RatelimitDuration))
+	rateLimited := router.Group("/").Use(ratelimiterMiddleware(
+		server.rateLimiter,
+		server.config.RatelimitDuration))
 	rateLimited.POST("/users/verify-email", server.VerifyEmail)
+	rateLimited.POST("/users/resend-verification", server.ResendVerificationEmail)
 
 	// authorized routers
 	authRouter := router.Group("/").Use(authMiddleware(server.tokenMaker))

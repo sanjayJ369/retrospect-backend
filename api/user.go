@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -47,7 +48,7 @@ func (s *Server) createUser(ctx *gin.Context) {
 	}
 
 	endpoint := fmt.Sprintf("https://%s/users/verify-email", s.config.Domain)
-	emailTemplate := fmt.Sprintf("%s/email_verification.html", s.config.TemplatesDir)
+	emailTemplate := filepath.Join(s.config.TemplatesDir, "email_verification.html")
 	if err := SendVerificationMail(
 		s.emailSender,
 		user.ID.Bytes,
