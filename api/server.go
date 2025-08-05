@@ -56,7 +56,7 @@ func setupRoutes(server *Server) {
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 	router.POST("/tokens/renew_access", server.renewAccessToken)
-	router.GET("/users/reset-password", server.resetPassword)
+	router.POST("/users/reset-password", server.resetPassword)
 
 	// rate limiting middleware
 	rateLimited := router.Group("/").Use(ratelimiterMiddleware(

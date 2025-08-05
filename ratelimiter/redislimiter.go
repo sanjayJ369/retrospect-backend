@@ -12,9 +12,11 @@ type RedisRateLimiter struct {
 }
 
 func NewRedisRateLimiter(redisURL string) *RedisRateLimiter {
-	client := redis.NewClient(&redis.Options{
-		Addr: redisURL,
-	})
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {
+		panic("invalid Redis URL: " + err.Error())
+	}
+	client := redis.NewClient(opt)
 	return &RedisRateLimiter{
 		client: client,
 	}
