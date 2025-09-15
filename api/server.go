@@ -2,7 +2,9 @@ package api
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	db "github.com/sanjayj369/retrospect-backend/db/sqlc"
 	"github.com/sanjayj369/retrospect-backend/mail"
@@ -51,6 +53,15 @@ func errorResponse(err error) gin.H {
 
 func setupRoutes(server *Server) {
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "https://retrospect.sanjayj.dev"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// user routes
 	router.POST("/users", server.createUser)
