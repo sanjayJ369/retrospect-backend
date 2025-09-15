@@ -228,7 +228,7 @@ func TestResetPasswordAPI(t *testing.T) {
 
 			url := "/users/reset-password"
 
-			req, err := http.NewRequest(http.MethodGet, url, tc.resetDetails)
+			req, err := http.NewRequest(http.MethodPost, url, tc.resetDetails)
 			require.NoError(t, err)
 
 			server.router.ServeHTTP(recorder, req)
